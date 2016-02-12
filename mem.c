@@ -1,13 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
+#include <time.h>
+
+#define NELEMENTS (1024 * 1024)
+#define ESIZE 32
 
 typedef struct ll {
 	struct ll *prev;
 	struct ll *next;
-	char n[1024];
+	int idx;
+	char n[ESIZE];
 } llist;
-	
+
+struct timespec start, end;
 
 int 
 main(int argc, char **argv) 
@@ -15,54 +22,30 @@ main(int argc, char **argv)
 	int i, c, r;
 	llist *head, *curr, *next, *tail;
 
-	if(argc < 2) {
-		fprintf(stderr, "Usage: %s {num_list_elements}\n", argv[0]);
-		exit(-1);
-	} else {
-		c = atoi(argv[1]);
-	}
-
 	head = curr = next = tail = NULL;
 	
-	/* allocate the beginning of the list */
+	clock_gettime(CLOCK_MONOTONIC, &start);	
 	head = (llist *) malloc(sizeof(llist));
 
 	head->prev = NULL;
 	head->next = NULL;
-	head->n = 0;
+	memset((char *) head->n, (random() % 255), ESIZE);
+	head->idx = 0;
 	curr = head;
 
-	for(i = 1; i < c; i++) {
+	for(i = 1; i < NELEMENTS; i++) {
 		next = (llist *) malloc(sizeof(llist));
-		next->n = i;
+		memset((char *) next->n, (random() % 255), ESIZE);
+		next->idx = i;
 		curr->next = next;
 		next->prev = curr;
 		curr = next;
 	}
+	clock_gettime(CLOCK_MONOTONIC, &end);	
 	
 	/* mark the end of the list */	
 	tail = curr;
 	
-	/* rewind to the beginning of the list */ 
-	curr = head;
-	
-	/*
-	while(curr) {
-		fprintf(stdout, "curr_idx: %d\n", curr->n);
-		curr = curr->next;
-	}
-	*/
-
-	/* forward to the end of the list */
-	curr = tail;
-
-	/* 
-	while(curr) {
-		fprintf(stdout, "curr_idx: %d\n", curr->n);
-		curr = curr->prev;
-	}
-	*/
-
 	/* connect the tail with the head */
 
 	tail->next = head;
@@ -70,20 +53,19 @@ main(int argc, char **argv)
 	
 	/* we now have a circular double linked list */	
 
-	/* rewind again to the original beginning of the list */
+	/* rewind to the original beginning of the list */
 	curr = head;
 
 get_random:
-	r = (random() % c);		
+	r = (random() % NELEMENTS);		
 	
 	while (curr) {
-		if (curr->n == r) {
-			fprintf(stdout, "curr_idx: %d\n", curr->n);
+		if (curr->idx == r) {
+			fprintf(stdout, "curr_idx: %08d, contents: %s\n", curr->idx, curr->n);
 			goto get_random;
 		} else {
 			curr = curr->next;
 		}
 	}
-	
 	return 0;
 }
