@@ -9,7 +9,8 @@ typedef struct ll {
 } llist;
 	
 
-int main(int argc, char **argv) 
+int 
+main(int argc, char **argv) 
 {
 	int i, c, r;
 	llist *head, *curr, *next, *tail;
