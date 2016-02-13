@@ -3,8 +3,9 @@
 #include <unistd.h>
 #include <string.h>
 #include <time.h>
+#include "common.h"
 
-#define NELEMENTS (1024 * 1024)
+#define NELEMENTS 8
 #define ESIZE 32
 
 typedef struct ll {
@@ -19,10 +20,12 @@ struct timespec start, end;
 int 
 main(int argc, char **argv) 
 {
-	int i, c, r;
+	int i, c, r; 
+	char t[NELEMENTS];
 	llist *head, *curr, *next, *tail;
 
 	head = curr = next = tail = NULL;
+	memset((char *) t, 0, NELEMENTS);
 	
 	clock_gettime(CLOCK_MONOTONIC, &start);	
 	head = (llist *) malloc(sizeof(llist));
@@ -40,32 +43,42 @@ main(int argc, char **argv)
 		curr->next = next;
 		next->prev = curr;
 		curr = next;
+#ifdef DEBUG
+	fprintf(stdout, "Allocated idx: %d\n", i);
+#endif 
 	}
 	clock_gettime(CLOCK_MONOTONIC, &end);	
-	
+
+#ifdef DEBUG
+	fprintf(stdout, "Allocation time: %ld usecs\n", tdiff(start, end));
+#endif 
+		
 	/* mark the end of the list */	
 	tail = curr;
 	
-	/* connect the tail with the head */
+	/* connect the tail with the head to create a circular linked list*/
 
 	tail->next = head;
 	head->prev = tail;
-	
-	/* we now have a circular double linked list */	
 
 	/* rewind to the original beginning of the list */
 	curr = head;
 
-get_random:
-	r = (random() % NELEMENTS);		
-	
-	while (curr) {
-		if (curr->idx == r) {
-			fprintf(stdout, "curr_idx: %08d, contents: %s\n", curr->idx, curr->n);
-			goto get_random;
-		} else {
-			curr = curr->next;
-		}
+	clock_gettime(CLOCK_MONOTONIC, &start);
+	while (curr->idx) {
+#ifdef DEBUGV
+		fprintf(stdout, "Current link index: %d\n", curr->idx);
+#endif
+		if (curr->idx == (NELEMENTS - 1)) 
+			break;
+		
+		curr = curr->next;
+		
 	}
+	clock_gettime(CLOCK_MONOTONIC, &end);
+
+#ifdef DEBUG
+	fprintf(stdout, "Traversal time: %ld usecs\n", tdiff(start, end));
+#endif 
 	return 0;
 }
