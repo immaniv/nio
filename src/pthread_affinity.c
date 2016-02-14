@@ -26,7 +26,11 @@ main(int argc, char *argv[])
 		CPU_SET(j, &cpuset);
 
 
+	CPU_CLR(1, &cpuset);
+	CPU_CLR(2, &cpuset);
+	CPU_CLR(3, &cpuset);
 	CPU_CLR(4, &cpuset);
+	CPU_CLR(5, &cpuset);
 	/* check if the cpu's have actually been set */
 	for (j = 0; j < nprocs; j++)
 		fprintf(stdout, "CPU: %d, status: %d\n", j, CPU_ISSET(j, &cpuset));

@@ -3,7 +3,12 @@
 #include <unistd.h>
 #include <string.h>
 #include <time.h>
+#include <sched.h>
+#include <pthread.h>
+
 #include "common.h"
+
+#define _GNU_SOURCE
 
 #define NELEMENTS 8
 #define ESIZE 32
@@ -15,14 +20,27 @@ typedef struct ll {
 	char n[ESIZE];
 } llist;
 
+void *lwalk(void *threadid) {
+	long tid;
+	tid = (long) threadid;
+	
+	pthread_exit(NULL);
+}
+
 struct timespec start, end;
 
 int 
 main(int argc, char **argv) 
 {
 	int i, c, r; 
+	int nprocs;
+	cpu_set_t cpuset;
+
+
 	char t[NELEMENTS];
 	llist *head, *curr, *next, *tail;
+
+	nprocs = sysconf(_SC_NPROCESSORS_ONLN);
 
 	head = curr = next = tail = NULL;
 	memset((char *) t, 0, NELEMENTS);
