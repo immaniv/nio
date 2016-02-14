@@ -7,6 +7,7 @@
 #include <pthread.h>
 
 #include "common.h"
+#include "debug.h"
 
 #define _GNU_SOURCE
 
@@ -61,15 +62,12 @@ main(int argc, char **argv)
 		curr->next = next;
 		next->prev = curr;
 		curr = next;
-#ifdef DEBUG
-	fprintf(stdout, "Allocated idx: %d\n", i);
-#endif 
+		
+		dbg_printf(1, "Allocated idx: %d\n", i);
 	}
 	clock_gettime(CLOCK_MONOTONIC, &end);	
 
-#ifdef DEBUG
-	fprintf(stdout, "Allocation time: %ld usecs\n", tdiff(start, end));
-#endif 
+	dbg_printf(1, "Allocation time: %ld usecs\n", tdiff(start, end));
 		
 	/* mark the end of the list */	
 	tail = curr;
@@ -84,9 +82,9 @@ main(int argc, char **argv)
 
 	clock_gettime(CLOCK_MONOTONIC, &start);
 	while (curr->idx) {
-#ifdef DEBUGV
-		fprintf(stdout, "Current link index: %d\n", curr->idx);
-#endif
+	
+		dbg_printf(1, "Current link index: %d\n", curr->idx);
+		
 		if (curr->idx == (NELEMENTS - 1)) 
 			break;
 		
@@ -95,8 +93,7 @@ main(int argc, char **argv)
 	}
 	clock_gettime(CLOCK_MONOTONIC, &end);
 
-#ifdef DEBUG
-	fprintf(stdout, "Traversal time: %ld usecs\n", tdiff(start, end));
-#endif 
+	dbg_printf(1, "Traversal time: %ld usecs\n", tdiff(start, end));
+
 	return 0;
 }
