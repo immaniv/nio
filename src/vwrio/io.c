@@ -27,7 +27,7 @@ void *io_thread (void *arg)
 	
 	n_iodev = (struct dev_opts *) myopts->opts;
 	id = (int) myopts->thread_id;
-
+	
 	/* 
 	signal(SIGINT, sigint_handler);
         signal(SIGTERM, sigterm_handler);
@@ -37,6 +37,8 @@ void *io_thread (void *arg)
 	pthread_t myid;
 	myid = pthread_self();
 	myopts->tid = myid;
+
+	srandom(myopts->rand_seed);
 
 	myfd = dup(n_iodev->fd);
 

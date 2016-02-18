@@ -42,6 +42,7 @@ struct thread_opts {
 	int thread_id;
 	int t_type;
 	int t_mode;
+	int rand_seed;
 	pthread_t tid;
 };
 

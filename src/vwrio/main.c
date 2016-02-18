@@ -118,6 +118,8 @@ int main (int argc, char *argv[])
 #ifdef DEBUG
 		fprintf(stdout, "Launching thread %d, mode = %c, type = %s\n", tnum, (topts[tnum].t_mode)?'W':'R', "TBD");
 #endif
+		/* static random seed */
+		topts[tnum].rand_seed = (tnum + 1000); 
    		pthread_create(&numthreads[tnum], &attr, io_thread, (void *) &topts[tnum]); 
    	}
 	
