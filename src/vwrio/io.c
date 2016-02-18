@@ -44,9 +44,11 @@ void *io_thread (void *arg)
 
 	total_extent = ((n_iodev->size*1024*1024)/n_iodev->bs);
 
-#ifdef DEBUG
-	fprintf(stdout, "Starting thread %d in mode %c, type %s\n", id, (myopts->t_mode)?'W':'R', "TBD");
-#endif
+	dbg_printf(1, "Starting thread %d in mode %c, type %s\n", \
+		id, \
+		(myopts->t_mode) ? 'W' : 'R', \
+		(((myopts->t_type == 0) ? "SEQUENTIAL" : ((myopts->t_type == 1) ? "RANDOM" : "MIXED"))));
+
 	
 RUN_INDEFINITELY:
 	lr_err = 0;

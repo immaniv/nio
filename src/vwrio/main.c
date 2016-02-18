@@ -61,10 +61,9 @@ int main (int argc, char *argv[])
 		read_threads = (int) ((iodev.nthreads * iodev.read_ratio)/100);
 		write_threads = (int) iodev.nthreads - read_threads;
 	}
-#ifdef DEBUG
-		fprintf(stdout, "READ Threads: %d, WRITE Threads: %d\n", read_threads, write_threads);
-		fprintf(stdout, "IO Mode: %d\n", iodev.mode);
-#endif
+
+	dbg_printf(1, "READ Threads: %d, WRITE Threads: %d\n", read_threads, write_threads);
+	dbg_printf(1, "IO Mode: %d\n", iodev.mode);
 
 
 	topts = (struct thread_opts *) malloc (sizeof(struct thread_opts) * iodev.nthreads);
@@ -115,9 +114,14 @@ int main (int argc, char *argv[])
 		} else {
 			topts[tnum].t_mode = iodev.mode;
 		}
-#ifdef DEBUG
-		fprintf(stdout, "Launching thread %d, mode = %c, type = %s\n", tnum, (topts[tnum].t_mode)?'W':'R', "TBD");
-#endif
+	
+		topts[tnum].t_type = iodev.type;		
+			
+		dbg_printf(1, "Launching thread %d, mode = %c, type = %s\n", \
+		tnum, \
+		(topts[tnum].t_mode) ? 'W':'R', \
+		(topts[tnum].t_type) ? ((topts[tnum].t_type == RANDOM) ? "RND" : "MIX"): "SEQ");
+		
 		/* static random seed */
 		topts[tnum].rand_seed = (tnum + 1000); 
    		pthread_create(&numthreads[tnum], &attr, io_thread, (void *) &topts[tnum]); 
@@ -130,11 +134,11 @@ int main (int argc, char *argv[])
 		pthread_join(numthreads[i], &status);
   	}
 
-	fprintf(stdout, "dev: %s | n_threads: %02d | mode: %s | type: %s | blksize: %d (B) | iops: %.02f | MB/s: %.02f | svc_time: %.02f (ms)\n",
+	fprintf(stdout, "dev: %s | n_threads: %02d | mode: %c | type: %s | blksize: %d (B) | iops: %.02f | MB/s: %.02f | svc_time: %.02f (ms)\n",
 		iodev.devpath, 
 		iodev.nthreads, 
-		(iodev.mode) ? ((iodev.mode == N_WRITE) ? "W":"M"):"R", 
-		(iodev.type) ? ((iodev.type == 1) ? "RND":"MIX"):"SEQ",	
+		(iodev.mode) ? ((iodev.mode == N_WRITE) ? 'W' : 'M'): 'R', 
+		(iodev.type) ? ((iodev.type == RANDOM) ? "RND" : "MIX") : "SEQ",	
 		iodev.bs, 
 		IOPs,
 		MBps,

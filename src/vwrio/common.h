@@ -49,9 +49,15 @@ struct thread_opts {
 void sigint_handler();
 void sigkill_handler();
 void sigterm_handler();
+
 void usage(void);
 void parse_args(int argc, char **argv, struct dev_opts *opts);
+
 void cleanup(pthread_mutex_t *mutex, struct dev_opts *opts);
 void *io_thread (void *arg);
 int io_cmd (int device_fd, char *io_buf, int bufsize, int type);
+
 double tdiff(struct timespec t1, struct timespec t2, short type);
+
+void dbg_printf(int verbosity, const char *format, ...);
+

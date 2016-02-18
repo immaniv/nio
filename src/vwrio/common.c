@@ -12,6 +12,7 @@
 #include <ctype.h>
 #include <sys/statvfs.h>
 #include <signal.h>
+#include <stdarg.h>
 
 #include "common.h"
 
@@ -19,9 +20,18 @@
 /* 
 Future Options
 
--T $TYPE_RATIO - ratio of SEQUENTIAL type IO (default is 100)\n\
--t $TYPE - S for SEQUENTIAL (default), R for RANDOM, M for MIXED\n\
 */
+
+void 
+dbg_printf(int verbosity, const char *format, ...) 
+{
+#ifdef DEBUG
+	va_list args;
+	va_start(args, format);
+	vprintf(format, args);
+	va_end(args);
+#endif
+}
 
 void 
 cleanup(pthread_mutex_t *mutex, struct dev_opts *opts)
@@ -79,18 +89,19 @@ void usage(void)
 {
 	extern char *__progname;
 	
-	fprintf(stdout, "\nUsage: %s OPTIONS\n%s%s%s%s", __progname, "\
+	fprintf(stdout, "\nUsage: %s [options]\n%s%s%s%s", __progname, "\
 	\n\
- -d $DEVICE - /dev/sdX (block device)\n\
- -b $BLKSIZE - in bytes (default is 65536 bytes - min is 512 bytes, max is 4194304 bytes)\n\
- -s $DEVSIZE - in MB (default is 16 MB - min 4 MB)\n\
- -n $THREADS - number of IO threads (default is 8 - min is 1, max is 32)\n\
- -i $ITERATIONS - number of times to run (default is 16 - min is 16)\n\
- -t $TYPE - S for SEQUENTIAL (default), R for RANDOM\n\
- -m $MODE - R for READ (default), W for WRITE, M for MIXED\n\
- -M $MODE_RATIO - ratio of READ mode IO (default is 100)\n\
- -I run indefinitely and report periodic stats\n\
- -h this help\n\n",\
+ -d $device      - /dev/sdX (block device)\n\
+ -b $blksize     - in bytes (default is 65536 bytes - min is 512 bytes, max is 4194304 bytes)\n\
+ -s $devsize     - in MB (default is 16 MB - min 4 MB)\n\
+ -n $threads     - number of IO threads (default is 8 - min is 1, max is 32)\n\
+ -i $iterations  - number of times to run (default is 16 - min is 16)\n\
+ -t $type        - S for SEQUENTIAL (default), R for RANDOM\n\
+ -T $type_ratio  - ratio of SEQUENTIAL type IO (default is 100) (NOT AVAILABLE)\n\
+ -m $mode        - R for READ (default), W for WRITE, M for MIXED\n\
+ -M $mode_ratio  - ratio of READ mode IO (default is 100)\n\
+ -I                run indefinitely and report periodic stats\n\
+ -h                this help\n\n",\
 "Example:\n",\
 __progname, " -d /dev/sda -b 4096 -s 64 -n 8 -i 64\n\n"\
 	);
