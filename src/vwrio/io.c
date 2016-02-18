@@ -69,22 +69,20 @@ RUN_INDEFINITELY:
 					clock_gettime(CLOCK_MONOTONIC, &iostartt);
 					if ( nbytes = (read(myfd, n_iodev->buf, n_iodev->bs)) != n_iodev->bs) {
 						lr_err++;
-						perror("read");
+						/* perror("read"); */
 					}
 					clock_gettime(CLOCK_MONOTONIC, &ioendt);
-					iodiff += (((ioendt.tv_sec*1000000)+(ioendt.tv_nsec/1000)) - \
-				         	((iostartt.tv_sec*1000000)+(iostartt.tv_nsec/1000)));
+					iodiff += usec_diff(iostartt, ioendt); 
 				}
 			} else if (myopts->t_mode == N_WRITE) {
 				for (n = 0; n < total_extent; n++) {
 					clock_gettime(CLOCK_MONOTONIC, &iostartt);
 					if ( nbytes = (write(myfd, n_iodev->buf, n_iodev->bs)) != n_iodev->bs) { 
 						lw_err++;
-						perror("write");
+						/* perror("write"); */
 					}
 					clock_gettime(CLOCK_MONOTONIC, &ioendt);
-					iodiff += (((ioendt.tv_sec*1000000)+(ioendt.tv_nsec/1000)) - \
-				         	((iostartt.tv_sec*1000000)+(iostartt.tv_nsec/1000)));
+					iodiff += usec_diff(iostartt, ioendt); 
 				}
 			}
 			iodiff /= n;
@@ -101,11 +99,10 @@ RUN_INDEFINITELY:
 					clock_gettime(CLOCK_MONOTONIC, &iostartt);
 					if ( nbytes = (read(myfd, n_iodev->buf, n_iodev->bs)) != n_iodev->bs) {
 						lr_err++;
-						perror("read");
+						/* perror("read"); */
 					}
 					clock_gettime(CLOCK_MONOTONIC, &ioendt);
-					iodiff += (((ioendt.tv_sec*1000000)+(ioendt.tv_nsec/1000)) - \
-				         	((iostartt.tv_sec*1000000)+(iostartt.tv_nsec/1000)));
+					iodiff += usec_diff(iostartt, ioendt); 
 				}
 			} else if (myopts->t_mode == N_WRITE) {
 				for (n = 0; n < total_extent; n++) {
@@ -113,11 +110,10 @@ RUN_INDEFINITELY:
 					clock_gettime(CLOCK_MONOTONIC, &iostartt);
 					if ( nbytes = (write(myfd, n_iodev->buf, n_iodev->bs)) != n_iodev->bs) { 
 						lw_err++;
-						perror("write");
+						/* perror("write"); */
 					}
 					clock_gettime(CLOCK_MONOTONIC, &ioendt);
-					iodiff += (((ioendt.tv_sec*1000000)+(ioendt.tv_nsec/1000)) - \
-				         	((iostartt.tv_sec*1000000)+(iostartt.tv_nsec/1000)));
+					iodiff += usec_diff(iostartt, ioendt);
 				}
 			}
 			iodiff /= n;
@@ -126,7 +122,8 @@ RUN_INDEFINITELY:
 	}
 
 	diff = (((endt.tv_sec*1000000)+(endt.tv_nsec/1000)) - \
-	       ((startt.tv_sec*1000000)+(startt.tv_nsec/1000)))/1000000.0;
+	       ((startt.tv_sec*1000000)+(startt.tv_nsec/1000)))/1000000.0; 
+
 
 	lIOps = n/(diff/iter); 
 	lMBps = ((n/(diff/iter))*n_iodev->bs)/(1024*1024);

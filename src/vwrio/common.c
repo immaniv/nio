@@ -23,7 +23,8 @@ Future Options
 -t $TYPE - S for SEQUENTIAL (default), R for RANDOM, M for MIXED\n\
 */
 
-void cleanup (pthread_mutex_t *mutex, struct dev_opts *opts)
+void 
+cleanup(pthread_mutex_t *mutex, struct dev_opts *opts)
 {
 	pthread_mutex_destroy(mutex);
 	if (opts != NULL) {
@@ -32,21 +33,28 @@ void cleanup (pthread_mutex_t *mutex, struct dev_opts *opts)
 	}
 }
 
+double
+usec_diff(struct timespec t1, struct timespec t2) 
+{
+	return ((((t2.tv_sec * 1.0E9) + (t2.tv_nsec)) - ((t1.tv_sec * 1.0E9) + (t1.tv_nsec))))/1.0E3;
+}
 
-void sigint_handler()
+void 
+sigint_handler()
 {
 	sigterm_handler();
 }
 
-void sigterm_handler()
+void 
+sigterm_handler()
 {
 	int n;
 	extern struct dev_opts iodev;
 	extern pthread_mutex_t mutexsum;
 	extern struct thread_opts *topts;
-	fprintf(stdout, "Abort received. Cleaning up ..\n");
+	fprintf(stdout, "Abort received. Cleaning up\n");
 	for (n = 0; n < iodev.nthreads; n++) {
-		fprintf(stdout, "Cancelling thread: %d\n", n);
+		fprintf(stdout, "Terminating thread: %d .. \n", n);
 		pthread_cancel(topts[n].tid);
 	}
 	cleanup(&mutexsum, &iodev);
@@ -58,7 +66,7 @@ void sigkill_handler()
 	sigterm_handler();
 }
 
-void usage (void) 
+void usage(void) 
 {
 	extern char *__progname;
 	

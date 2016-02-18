@@ -49,3 +49,4 @@ void parse_args(int argc, char **argv, struct dev_opts *opts);
 void cleanup(pthread_mutex_t *mutex, struct dev_opts *opts);
 void *io_thread (void *arg);
 int io_cmd (int device_fd, char *io_buf, int bufsize, int type);
+double usec_diff(struct timespec t1, struct timespec t2);
