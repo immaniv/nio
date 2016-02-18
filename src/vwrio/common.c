@@ -34,9 +34,18 @@ cleanup(pthread_mutex_t *mutex, struct dev_opts *opts)
 }
 
 double
-usec_diff(struct timespec t1, struct timespec t2) 
+tdiff(struct timespec t1, struct timespec t2, short type) 
 {
-	return ((((t2.tv_sec * 1.0E9) + (t2.tv_nsec)) - ((t1.tv_sec * 1.0E9) + (t1.tv_nsec))))/1.0E3;
+	switch (type) {
+	case SECS :
+		return ((((t2.tv_sec * 1.0E9) + (t2.tv_nsec)) - ((t1.tv_sec * 1.0E9) + (t1.tv_nsec))))/1.0E9;
+	case MSECS :
+		return ((((t2.tv_sec * 1.0E9) + (t2.tv_nsec)) - ((t1.tv_sec * 1.0E9) + (t1.tv_nsec))))/1.0E6;
+	case USECS :
+		return ((((t2.tv_sec * 1.0E9) + (t2.tv_nsec)) - ((t1.tv_sec * 1.0E9) + (t1.tv_nsec))))/1.0E3;
+	case NSECS :
+		return ((((t2.tv_sec * 1.0E9) + (t2.tv_nsec)) - ((t1.tv_sec * 1.0E9) + (t1.tv_nsec))));
+	}
 }
 
 void 
