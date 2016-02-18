@@ -15,17 +15,6 @@
 
 #include "common.h"
 
-char HELP[] = "\
--d $DEVICE - /dev/ path to the device\n\
--b $BLKSIZE - in bytes (default is 65536 bytes - min is 512 bytes, max is 4194304 bytes)\n\
--s $DEVSIZE - in MB (default is 16 MB - min 4 MB)\n\
--n $THREADS - number of IO threads (default is 8 - min is 1, max is 32)\n\
--i $ITERATIONS - number of times to run (default is 16 - min is 16)\n\
--t $TYPE - S for SEQUENTIAL (default), R for RANDOM\n\
--m $MODE - R for READ (default), W for WRITE, M for MIXED\n\
--M $MODE_RATIO - ratio of READ mode IO (default is 100)\n\
--I run indefinitely and report periodic stats\n\
--h this help\n\n";
 
 /* 
 Future Options
@@ -72,7 +61,22 @@ void sigkill_handler()
 void usage (void) 
 {
 	extern char *__progname;
-	fprintf(stdout, "Usage: %s -d $DEVICE -b $BLOCK_SIZE -s $DEVICE_SIZE -n $IO_THREADS\n%s", __progname, HELP);
+	
+	fprintf(stdout, "\nUsage: %s OPTIONS\n%s%s%s%s", __progname, "\
+	\n\
+ -d $DEVICE - /dev/sdX (block device)\n\
+ -b $BLKSIZE - in bytes (default is 65536 bytes - min is 512 bytes, max is 4194304 bytes)\n\
+ -s $DEVSIZE - in MB (default is 16 MB - min 4 MB)\n\
+ -n $THREADS - number of IO threads (default is 8 - min is 1, max is 32)\n\
+ -i $ITERATIONS - number of times to run (default is 16 - min is 16)\n\
+ -t $TYPE - S for SEQUENTIAL (default), R for RANDOM\n\
+ -m $MODE - R for READ (default), W for WRITE, M for MIXED\n\
+ -M $MODE_RATIO - ratio of READ mode IO (default is 100)\n\
+ -I run indefinitely and report periodic stats\n\
+ -h this help\n\n",\
+"Example:\n",\
+__progname, " -d /dev/sda -b 4096 -s 64 -n 8 -i 64\n\n"\
+	);
 }
 void parse_args (int argc, char **argv, struct dev_opts *opts)
 {
