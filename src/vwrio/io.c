@@ -44,10 +44,8 @@ void *io_thread (void *arg)
 
 	total_extent = ((n_iodev->size*1024*1024)/n_iodev->bs);
 
-	dbg_printf(1, "Starting thread %d in mode %c, type %s\n", \
-		id, \
-		(myopts->t_mode) ? 'W' : 'R', \
-		(((myopts->t_type == 0) ? "SEQUENTIAL" : ((myopts->t_type == 1) ? "RANDOM" : "MIXED"))));
+	dbg_printf(1, "Starting thread %d in mode %c, type %c\n", \
+		id, GET_IO_MODE(myopts->t_mode), GET_IO_TYPE(myopts->t_type));
 
 	
 RUN_INDEFINITELY:
@@ -62,7 +60,7 @@ RUN_INDEFINITELY:
         iter = 0;
         nbytes = 0;
 
-	if (n_iodev->type == SEQUENTIAL) {
+	if (myopts->t_type == SEQUENTIAL) {
 		clock_gettime(CLOCK_MONOTONIC, &startt);
 		for (iter = 0; iter < n_iodev->iter; iter++) {
 			lseek(myfd, 0, SEEK_SET);
@@ -92,7 +90,7 @@ RUN_INDEFINITELY:
 			iodiff /= n;
 		}
 		clock_gettime(CLOCK_MONOTONIC, &endt);
-	} else if (n_iodev->type == RANDOM) {
+	} else if (myopts->t_type == RANDOM) {
 		clock_gettime(CLOCK_MONOTONIC, &startt);
 		for (iter = 0; iter < n_iodev->iter; iter++) {
 			lseek(myfd, 0, SEEK_SET);
@@ -136,11 +134,11 @@ RUN_INDEFINITELY:
 	lavg_lat = (iodiff/iter);
 	
 	if (n_iodev->verbose || n_iodev->indefinite) {
-		fprintf(stdout, "thread id: %d | blksize: %d (B) | mode: %s | type: %s | iops: %.02f | MB/s: %.02f | svc_time: %.2f (ms)\n", \
+		fprintf(stdout, "thread id: %d | blksize: %d (B) | mode: %c | type: %c | iops: %.02f | MB/s: %.02f | svc_time: %.2f (ms)\n", \
 			id, \
 			n_iodev->bs, \
-			(myopts->t_mode) ? "W":"R", \
-			(n_iodev->type)?((n_iodev->type == 1)?"RND":"MIX"):"SEQ", \
+			GET_IO_MODE(myopts->t_mode), \
+			GET_IO_TYPE(myopts->t_type), \
 			lIOps, \
 			lMBps, \
 			lavg_lat/1000);

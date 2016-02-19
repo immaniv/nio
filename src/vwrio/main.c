@@ -17,7 +17,6 @@
 #include <signal.h>
 #include "common.h"
 
-
 double IOPs, MBps; 
 double min_lat, max_lat, avg_lat;
 double r_IOPs, r_MBps, r_avg_lat;
@@ -34,12 +33,15 @@ int r_err, w_err;
 
 int main (int argc, char *argv[])
 {
-	int i;
+	int i, tnum;
 	struct dev_opts *iodevlist;
-	int read_threads, write_threads, tnum;
+	int read_workers, write_workers, r_work, w_work;
+	int seq_threads, rnd_threads, seq_t, rnd_t; 
 
-	read_threads = 0;
-	write_threads = 0;
+	read_workers = 0;
+	write_workers = 0;
+	seq_threads = 0;
+	rnd_threads = 0;
 	
 	iodev.bs = DEFAULT_BLOCK_SIZE;
 	iodev.size = DEFAULT_DEV_SIZE;
@@ -57,14 +59,21 @@ int main (int argc, char *argv[])
 
 	parse_args(argc, argv, &iodev);
 
+	dbg_printf(1,"Device: %s\n", iodev.devpath);
+
+	if (iodev.type = MIXED) {
+		seq_threads = (int) ((iodev.nthreads * iodev.seq_ratio)/100);
+		rnd_threads = (int) iodev.nthreads - seq_threads;	
+	}
+	
 	if (iodev.mode == MIXED) {
-		read_threads = (int) ((iodev.nthreads * iodev.read_ratio)/100);
-		write_threads = (int) iodev.nthreads - read_threads;
+		read_workers = (int) ((iodev.nthreads * iodev.read_ratio)/100);
+		write_workers = (int) iodev.nthreads - read_workers;
 	}
 
-	dbg_printf(1, "READ Threads: %d, WRITE Threads: %d\n", read_threads, write_threads);
-	dbg_printf(1, "IO Mode: %d\n", iodev.mode);
-
+	dbg_printf(1, "IO MODE: %c, R WORKERS: %d, W WORKERS: %d\n", GET_IO_MODE(iodev.mode), read_workers, write_workers);
+	dbg_printf(1, "IO TYPE: %c, S THREADS: %d, R THREADS: %d\n", GET_IO_TYPE(iodev.type), seq_threads, rnd_threads);
+	
 
 	topts = (struct thread_opts *) malloc (sizeof(struct thread_opts) * iodev.nthreads);
 	
@@ -74,59 +83,79 @@ int main (int argc, char *argv[])
 		exit(1);
 	}
 
-	iodev.buf = mmap(NULL, iodev.bs, PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_PRIVATE, -1, 0);
-
-	if (iodev.buf == MAP_FAILED) {
+	
+	if (((iodev.buf = mmap(NULL, iodev.bs, PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_PRIVATE, -1, 0)) == MAP_FAILED) \
+		|| (mlock(iodev.buf, iodev.bs) == -1)) {
 		perror("mmap");
-		exit(1);
-	}
-
-	memset(iodev.buf, 0, iodev.bs);
-        if ((mlock(iodev.buf, iodev.bs)) == -1) {
 		perror("mlock");
 		exit(1);
 	}
 
-	numthreads = (pthread_t *) malloc(sizeof(pthread_t)*iodev.nthreads);
-	wait_mutex = (pthread_mutex_t *) malloc(sizeof(pthread_mutex_t)*iodev.nthreads);
+	memset(iodev.buf, 0, iodev.bs);
 
-	
 	signal(SIGINT, sigint_handler);
 	signal(SIGTERM, sigterm_handler);
 	signal(SIGKILL, sigkill_handler);
 
+	numthreads = (pthread_t *) malloc(sizeof(pthread_t) * iodev.nthreads);
+	wait_mutex = (pthread_mutex_t *) malloc(sizeof(pthread_mutex_t) * iodev.nthreads);
+	
 	pthread_mutex_init(&mutexsum, NULL);
 	pthread_mutex_init(&rmutex, NULL);
 	pthread_mutex_init(&wmutex, NULL);
-         
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-	for (tnum = 0; tnum < iodev.nthreads; tnum++)  {
-		topts[tnum].thread_id = tnum;
-		topts[tnum].opts = &iodev;
-
-		if (iodev.mode == MIXED) {
-			if (tnum < read_threads)	
-				topts[tnum].t_mode = N_READ;
-			else
-				topts[tnum].t_mode = N_WRITE;
-		} else {
-			topts[tnum].t_mode = iodev.mode;
-		}
+	/* FIX THIS, YOU GIT */
 	
-		topts[tnum].t_type = iodev.type;		
+	 
+  	for (tnum = 0; tnum < iodev.nthreads; tnum++)  {
+ 		topts[tnum].thread_id = tnum;
+		topts[tnum].opts = &iodev;
+		
+		if (iodev.type == MIXED) {
+			for (seq_t = 0; seq_t < seq_threads; seq_t++) {	
+				topts[tnum].t_type = SEQUENTIAL;
+				if (iodev.mode == MIXED) {
+					for (r_work = 0; r_work < (read_workers / seq_threads); r_work++)
+						topts[tnum].t_mode = N_READ;
+					for (w_work = 0; w_work < (write_workers / seq_threads); w_work++)
+						topts[tnum].t_mode = N_WRITE;
+				} else {
+					topts[tnum].t_mode = iodev.mode;
+				}
+			} 
 			
-		dbg_printf(1, "Launching thread %d, mode = %c, type = %s\n", \
+			for (rnd_t = 0; rnd_t < rnd_threads; rnd_t++) {	
+				topts[tnum].t_type = RANDOM;
+				if (iodev.mode == MIXED) {
+					for (r_work = 0; r_work < (read_workers / seq_threads); r_work++)
+						topts[tnum].t_mode = N_READ;
+					for (w_work = 0; w_work < (write_workers / seq_threads); w_work++)
+						topts[tnum].t_mode = N_WRITE;
+				} else {
+					topts[tnum].t_mode = iodev.mode;
+				}
+			} 
+		} else {
+
+		}
+
+		dbg_printf(1, "Launching thread %d, mode = %c, type = %c\n", \
 		tnum, \
-		(topts[tnum].t_mode) ? 'W':'R', \
-		(topts[tnum].t_type) ? ((topts[tnum].t_type == RANDOM) ? "RND" : "MIX"): "SEQ");
+		GET_IO_MODE(topts[tnum].t_mode), \
+		GET_IO_TYPE(topts[tnum].t_type));
 		
 		/* static random seed */
 		topts[tnum].rand_seed = (tnum + 1000); 
+#ifndef DEBUG		
    		pthread_create(&numthreads[tnum], &attr, io_thread, (void *) &topts[tnum]); 
+#endif 
    	}
-	
+
+#ifdef DEBUG
+		return 1;
+#endif
 
 	pthread_attr_destroy(&attr);
 
@@ -134,11 +163,11 @@ int main (int argc, char *argv[])
 		pthread_join(numthreads[i], &status);
   	}
 
-	fprintf(stdout, "dev: %s | n_threads: %02d | mode: %c | type: %s | blksize: %d (B) | iops: %.02f | MB/s: %.02f | svc_time: %.02f (ms)\n",
+	fprintf(stdout, "dev: %s | n_threads: %02d | mode: %c | type: %c | blksize: %d (B) | iops: %.02f | MB/s: %.02f | svc_time: %.02f (ms)\n",
 		iodev.devpath, 
 		iodev.nthreads, 
 		(iodev.mode) ? ((iodev.mode == N_WRITE) ? 'W' : 'M'): 'R', 
-		(iodev.type) ? ((iodev.type == RANDOM) ? "RND" : "MIX") : "SEQ",	
+		(iodev.type) ? ((iodev.type == RANDOM) ? 'R' : 'M') : 'S',	
 		iodev.bs, 
 		IOPs,
 		MBps,

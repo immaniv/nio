@@ -96,10 +96,10 @@ void usage(void)
  -s $devsize     - in MB (default is 16 MB - min 4 MB)\n\
  -n $threads     - number of IO threads (default is 8 - min is 1, max is 32)\n\
  -i $iterations  - number of times to run (default is 16 - min is 16)\n\
- -t $type        - S for SEQUENTIAL (default), R for RANDOM\n\
- -T $type_ratio  - ratio of SEQUENTIAL type IO (default is 100) (NOT AVAILABLE)\n\
+ -t $type        - S for SEQUENTIAL (default), R for RANDOM, M for MIXED\n\
+ -T $type_ratio  - ratio of SEQUENTIAL type IO to RANDOM type IO (default is 100\% SEQUENTIAL) \n\
  -m $mode        - R for READ (default), W for WRITE, M for MIXED\n\
- -M $mode_ratio  - ratio of READ mode IO (default is 100)\n\
+ -M $mode_ratio  - ratio of READ mode IO to WRITE mode IO (default is 100\% READ)\n\
  -I                run indefinitely and report periodic stats\n\
  -h                this help\n\n",\
 "Example:\n",\

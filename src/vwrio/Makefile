@@ -1,6 +1,6 @@
 LIBS=-lrt -lpthread
 INCLUDE=-I .
-CC=gcc
+CC=gcc 
 OPTS=-O3
 
 all: vwrio d.vwrio

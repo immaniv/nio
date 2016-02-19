@@ -1,6 +1,5 @@
 #define N_READ   0
 #define N_WRITE  1
-#define N_MIXED  2
 
 #define DEFAULT_BLOCK_SIZE 	65536
 #define DEFAULT_DEV_SIZE	16
@@ -18,6 +17,9 @@
 #define	MSECS	2
 #define USECS	3
 #define NSECS	4
+
+#define GET_IO_MODE(a)  ((a) ? ((a == N_WRITE) ? 'W' : 'M') : 'R')
+#define GET_IO_TYPE(a)  ((a) ? ((a == RANDOM) ? 'R' : 'M') : 'S') 
 
 struct dev_opts {
 	int fd;
