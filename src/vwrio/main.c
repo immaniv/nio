@@ -35,11 +35,11 @@ int main (int argc, char *argv[])
 {
 	int i, tnum;
 	struct dev_opts *iodevlist;
-	int read_workers, write_workers, r_work, w_work;
-	int seq_threads, rnd_threads, seq_t, rnd_t; 
+	int rd_workers, wr_workers, r_work, w_work;
+	int seq_threads, rnd_threads, seq_rd, seq_wr, rnd_rd, rnd_wr; 
 
-	read_workers = 0;
-	write_workers = 0;
+	rd_workers = 0;
+	wr_workers = 0;
 	seq_threads = 0;
 	rnd_threads = 0;
 	
@@ -63,16 +63,52 @@ int main (int argc, char *argv[])
 
 	if (iodev.type = MIXED) {
 		seq_threads = (int) ((iodev.nthreads * iodev.seq_ratio)/100);
+		if (!seq_threads) 
+			seq_threads = 1;
 		rnd_threads = (int) iodev.nthreads - seq_threads;	
-	}
+	} 
 	
 	if (iodev.mode == MIXED) {
-		read_workers = (int) ((iodev.nthreads * iodev.read_ratio)/100);
-		write_workers = (int) iodev.nthreads - read_workers;
+		rd_workers = (int) ((iodev.nthreads * iodev.read_ratio)/100);
+		if (!rd_workers) 
+			rd_workers = 1;
+		wr_workers = (int) iodev.nthreads - rd_workers;
+	}
+	
+
+	if ((iodev.type == MIXED) && (iodev.mode == MIXED)) {
+		if (seq_threads > rnd_threads && rd_workers > wr_workers) {
+			seq_rd = (int) ((seq_threads + rd_workers) / 2);
+			seq_wr = seq_threads - seq_rd;
+			rnd_rd = (int) ((rnd_threads + wr_workers) / 2);
+			rnd_wr = rnd_threads - rnd_rd;
+		} else if (seq_threads > rnd_threads && wr_workers > rd_workers) {
+			seq_wr = (int) ((seq_threads + wr_workers) / 2);
+			seq_rd = seq_threads - seq_wr;
+			rnd_wr = (int) ((rnd_threads + rd_workers) / 2);
+			rnd_rd = rnd_threads - rnd_wr;
+		} else if (rnd_threads > seq_threads && rd_workers > wr_workers) {
+			rnd_rd = (int) ((rnd_threads + rd_workers) / 2);
+			rnd_wr = rnd_threads - rnd_rd;
+			seq_rd = (int) ((seq_threads + wr_workers) / 2);
+			seq_wr = seq_threads - seq_rd;
+		} else if (rnd_threads > seq_threads && wr_workers > rd_workers) {
+			rnd_wr = (int) ((rnd_threads + wr_workers) / 2);
+			rnd_rd = rnd_threads - rnd_wr;
+			seq_wr = (int) ((seq_threads + rd_workers) / 2);
+			seq_rd = seq_threads - seq_wr;
+		} else if (rnd_threads == seq_threads && wr_workers == rd_workers) {
+			rnd_rd = seq_rd = seq_wr = rnd_wr = (int) iodev.nthreads / 4;
+		}
 	}
 
-	dbg_printf(1, "IO MODE: %c, R WORKERS: %d, W WORKERS: %d\n", GET_IO_MODE(iodev.mode), read_workers, write_workers);
-	dbg_printf(1, "IO TYPE: %c, S THREADS: %d, R THREADS: %d\n", GET_IO_TYPE(iodev.type), seq_threads, rnd_threads);
+
+	dbg_printf(1, "io mode: %c, R workers: %d, W workers: %d\n", GET_IO_MODE(iodev.mode), rd_workers, wr_workers);
+	dbg_printf(1, "io type: %c, S threads: %d, R threads: %d\n", GET_IO_TYPE(iodev.type), seq_threads, rnd_threads);
+	dbg_printf(1, "** spawn %d sequential io type / read io mode workers\n", seq_rd);
+	dbg_printf(1, "** spawn %d sequential io type / write io mode workers\n", seq_wr);
+	dbg_printf(1, "** spawn %d random io type / read io mode workers\n", rnd_rd);
+	dbg_printf(1, "** spawn %d random io type / write io mode workers\n", rnd_wr);
 	
 
 	topts = (struct thread_opts *) malloc (sizeof(struct thread_opts) * iodev.nthreads);
@@ -107,37 +143,31 @@ int main (int argc, char *argv[])
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
 	/* FIX THIS, YOU GIT */
-	
 	 
   	for (tnum = 0; tnum < iodev.nthreads; tnum++)  {
  		topts[tnum].thread_id = tnum;
 		topts[tnum].opts = &iodev;
 		
-		if (iodev.type == MIXED) {
-			for (seq_t = 0; seq_t < seq_threads; seq_t++) {	
+		if (iodev.type == MIXED && iodev.mode == MIXED) {
+			if (seq_rd) {
 				topts[tnum].t_type = SEQUENTIAL;
-				if (iodev.mode == MIXED) {
-					for (r_work = 0; r_work < (read_workers / seq_threads); r_work++)
-						topts[tnum].t_mode = N_READ;
-					for (w_work = 0; w_work < (write_workers / seq_threads); w_work++)
-						topts[tnum].t_mode = N_WRITE;
-				} else {
-					topts[tnum].t_mode = iodev.mode;
-				}
-			} 
-			
-			for (rnd_t = 0; rnd_t < rnd_threads; rnd_t++) {	
+				topts[tnum].t_mode = N_READ;
+				seq_rd--;
+			} else if (seq_wr) {
+				topts[tnum].t_type = SEQUENTIAL;
+				topts[tnum].t_mode = N_WRITE;
+				seq_wr--;
+			} else if (rnd_rd) {
 				topts[tnum].t_type = RANDOM;
-				if (iodev.mode == MIXED) {
-					for (r_work = 0; r_work < (read_workers / seq_threads); r_work++)
-						topts[tnum].t_mode = N_READ;
-					for (w_work = 0; w_work < (write_workers / seq_threads); w_work++)
-						topts[tnum].t_mode = N_WRITE;
-				} else {
-					topts[tnum].t_mode = iodev.mode;
-				}
-			} 
+				topts[tnum].t_mode = N_READ;
+				rnd_rd--;
+			} else if (rnd_wr) {
+				topts[tnum].t_type = RANDOM;
+				topts[tnum].t_mode = N_WRITE;
+				rnd_wr--;
+			}
 		} else {
+			topts[tnum].t_mode = iodev.mode;
 
 		}
 
