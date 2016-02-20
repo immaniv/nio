@@ -63,7 +63,7 @@ RUN_INDEFINITELY:
 			if (myopts->t_mode == N_READ) {
 				for (n = 0; n < total_extent; n++) {
 					clock_gettime(CLOCK_MONOTONIC, &iostartt);
-					if (nbytes = (read(myfd, n_iodev->buf, n_iodev->bs)) != n_iodev->bs) {
+					if ((nbytes = (read(myfd, n_iodev->buf, n_iodev->bs))) != n_iodev->bs) {
 						lr_err++;
 						/* perror("read"); */
 					}
@@ -73,7 +73,7 @@ RUN_INDEFINITELY:
 			} else if (myopts->t_mode == N_WRITE) {
 				for (n = 0; n < total_extent; n++) {
 					clock_gettime(CLOCK_MONOTONIC, &iostartt);
-					if ( nbytes = (write(myfd, n_iodev->buf, n_iodev->bs)) != n_iodev->bs) { 
+					if ((nbytes = (write(myfd, n_iodev->buf, n_iodev->bs))) != n_iodev->bs) { 
 						lw_err++;
 						/* perror("write"); */
 					}
@@ -93,7 +93,7 @@ RUN_INDEFINITELY:
 				for (n = 0; n < total_extent; n++) {
 					lseek(myfd, (n_iodev->bs * (rand() % total_extent)), SEEK_SET);
 					clock_gettime(CLOCK_MONOTONIC, &iostartt);
-					if ( nbytes = (read(myfd, n_iodev->buf, n_iodev->bs)) != n_iodev->bs) {
+					if ((nbytes = (read(myfd, n_iodev->buf, n_iodev->bs))) != n_iodev->bs) {
 						lr_err++;
 						/* perror("read"); */
 					}
@@ -104,7 +104,7 @@ RUN_INDEFINITELY:
 				for (n = 0; n < total_extent; n++) {
 					lseek(myfd, (n_iodev->bs * (rand() % total_extent)), SEEK_SET);
 					clock_gettime(CLOCK_MONOTONIC, &iostartt);
-					if ( nbytes = (write(myfd, n_iodev->buf, n_iodev->bs)) != n_iodev->bs) { 
+					if ((nbytes = (write(myfd, n_iodev->buf, n_iodev->bs))) != n_iodev->bs) { 
 						lw_err++;
 						/* perror("write"); */
 					}
