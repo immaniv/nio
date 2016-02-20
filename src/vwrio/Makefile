@@ -1,17 +1,17 @@
 LIBS=-lrt -lpthread
 INCLUDE=-I .
 CC=gcc 
-OPTS=-O3
+OPTS=-O3 -Wall
 DFLAGS=-DDEBUG
 
 all: vwrio d.vwrio libxio.so.1.0.1
 
-vwrio: main.c io.c work.c signal.c common.c
-	$(CC) $^ $(LIBS) $(INCLUDE) $(OPTS) -o $@ -Wall
+vwrio: main.c io.c work.c signal.c common.c 
+	$(CC) $^ $(LIBS) $(INCLUDE) $(OPTS) -o $@ 
 	strip $@
 
 d.vwrio: main.c io.c work.c signal.c common.c
-	$(CC) $^ $(LIBS) $(INCLUDE) $(OPTS) $(DFLAGS) -g -o $@ -Wall
+	$(CC) $^ $(LIBS) $(INCLUDE) $(OPTS) $(DFLAGS) -g -o $@ 
 
 libxio.so: io.c work.c signal.c common.c
 	$(CC) -fPIC -g -c -Wall $^

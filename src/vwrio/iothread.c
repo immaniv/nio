@@ -3,7 +3,9 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <signal.h>
+
 #include "common.h"
+#include "timing.h"
 
 void *io_thread (void *arg)
 {
@@ -55,71 +57,70 @@ RUN_INDEFINITELY:
         nbytes = 0;
 
 	if (myopts->t_type == SEQUENTIAL) {
-		clock_gettime(CLOCK_MONOTONIC, &startt);
+		GET_SYS_CLOCK(&startt);
 		for (iter = 0; iter < n_iodev->iter; iter++) {
 			lseek(myfd, 0, SEEK_SET);
 			int total_extent = ((n_iodev->size*1024*1024)/n_iodev->bs);
 	
 			if (myopts->t_mode == N_READ) {
 				for (n = 0; n < total_extent; n++) {
-					clock_gettime(CLOCK_MONOTONIC, &iostartt);
+					GET_SYS_CLOCK(&iostartt);
 					if ((nbytes = (read(myfd, n_iodev->buf, n_iodev->bs))) != n_iodev->bs) {
 						lr_err++;
 						/* perror("read"); */
 					}
-					clock_gettime(CLOCK_MONOTONIC, &ioendt);
-					iodiff += TDIFF(iostartt, ioendt, USECS); 
+					GET_SYS_CLOCK(&ioendt);
+					iodiff += TDIFF(iostartt, ioendt)/USECS; 
 				}
 			} else if (myopts->t_mode == N_WRITE) {
 				for (n = 0; n < total_extent; n++) {
-					clock_gettime(CLOCK_MONOTONIC, &iostartt);
+					GET_SYS_CLOCK(&iostartt);
 					if ((nbytes = (write(myfd, n_iodev->buf, n_iodev->bs))) != n_iodev->bs) { 
 						lw_err++;
 						/* perror("write"); */
 					}
-					clock_gettime(CLOCK_MONOTONIC, &ioendt);
-					iodiff += TDIFF(iostartt, ioendt, USECS); 
+					GET_SYS_CLOCK(&ioendt);
+					iodiff += TDIFF(iostartt, ioendt)/USECS; 
 				}
 			}
 			iodiff /= n;
 		}
-		clock_gettime(CLOCK_MONOTONIC, &endt);
+		GET_SYS_CLOCK(&endt);
 	} else if (myopts->t_type == RANDOM) {
-		clock_gettime(CLOCK_MONOTONIC, &startt);
+		GET_SYS_CLOCK(&startt);
 		for (iter = 0; iter < n_iodev->iter; iter++) {
 			lseek(myfd, 0, SEEK_SET);
 			int total_extent = ((n_iodev->size*1024*1024)/n_iodev->bs);
 			if (myopts->t_mode == N_READ) {
 				for (n = 0; n < total_extent; n++) {
 					lseek(myfd, (n_iodev->bs * (rand() % total_extent)), SEEK_SET);
-					clock_gettime(CLOCK_MONOTONIC, &iostartt);
+					GET_SYS_CLOCK(&iostartt);
 					if ((nbytes = (read(myfd, n_iodev->buf, n_iodev->bs))) != n_iodev->bs) {
 						lr_err++;
 						/* perror("read"); */
 					}
-					clock_gettime(CLOCK_MONOTONIC, &ioendt);
-					iodiff += TDIFF(iostartt, ioendt, USECS); 
+					GET_SYS_CLOCK(&ioendt);
+					iodiff += TDIFF(iostartt, ioendt)/USECS; 
 				}
 			} else if (myopts->t_mode == N_WRITE) {
 				for (n = 0; n < total_extent; n++) {
 					lseek(myfd, (n_iodev->bs * (rand() % total_extent)), SEEK_SET);
-					clock_gettime(CLOCK_MONOTONIC, &iostartt);
+					GET_SYS_CLOCK(&iostartt);
 					if ((nbytes = (write(myfd, n_iodev->buf, n_iodev->bs))) != n_iodev->bs) { 
 						lw_err++;
 						/* perror("write"); */
 					}
-					clock_gettime(CLOCK_MONOTONIC, &ioendt);
-					iodiff += TDIFF(iostartt, ioendt, USECS);
+					GET_SYS_CLOCK(&ioendt);
+					iodiff += TDIFF(iostartt, ioendt)/USECS;
 				}
 			}
 			iodiff /= n;
 		}
-		clock_gettime(CLOCK_MONOTONIC, &endt);
+		GET_SYS_CLOCK(&endt);
 	}
 
-	diff = TDIFF(startt, endt, SECS);
-
-
+	diff = GET_DIFF_SECS(TDIFF(startt, endt));
+	
 	lIOps = n/(diff/iter); 
 	lMBps = ((n/(diff/iter))*n_iodev->bs)/(1024*1024);
 	lavg_lat = (iodiff/iter);

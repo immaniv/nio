@@ -16,16 +16,9 @@
 #define	RANDOM			1
 #define	MIXED			2
 
-#define SECS	1.0E1
-#define	MSECS	1.0E3
-#define USECS	1.0E6
-#define NSECS	1.0E9
 
 #define GET_IO_MODE(a)  ((a) ? ((a == N_WRITE) ? 'W' : 'M') : 'R')
 #define GET_IO_TYPE(a)  ((a) ? ((a == RANDOM) ? 'R' : 'M') : 'S') 
-
-#define TDIFF(tv1, tv2, TRES)	(((tv2.tv_sec * NSECS) + (tv2.tv_nsec)) - \
-				((tv1.tv_sec * NSECS) + (tv1.tv_nsec)))/TRES;
 
 struct dev_opts {
 	int fd;

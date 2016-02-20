@@ -15,7 +15,10 @@
 #include <ctype.h>
 #include <sys/statvfs.h>
 #include <signal.h>
+
 #include "common.h"
+#include "timing.h"
+
 
 double IOPs, MBps; 
 double min_lat, max_lat, avg_lat;
@@ -137,6 +140,7 @@ int main (int argc, char *argv[])
 
 	for(i = 0; i < iodev.nthreads; i++) {
 		pthread_join(numthreads[i], &status);
+		usleep (1000 * MSECS);
   	}
 
 	fprintf(stdout, "dev: %s | n_threads: %02d | mode: %c | type: %c | blksize: %d (B) | iops: %.02f | MB/s: %.02f | svc_time: %.02f (ms)\n",
