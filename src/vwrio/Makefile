@@ -2,15 +2,16 @@ LIBS=-lrt -lpthread
 INCLUDE=-I .
 CC=gcc 
 OPTS=-O3
+DFLAGS=-DDEBUG
 
 all: vwrio d.vwrio
 
-vwrio: main.c common.c io.c
-	$(CC) -o $@ $^ $(LIBS) $(INCLUDE) $(OPTS)
+vwrio: main.c io.c work.c common.c
+	$(CC) $^ $(LIBS) $(INCLUDE) $(OPTS) -o $@
 	strip $@
 
-d.vwrio: main.c common.c io.c
-	cc -g -o d.vwrio main.c common.c io.c -lrt -lpthread -I . -DDEBUG
+d.vwrio: main.c io.c work.c common.c
+	$(CC) $^ $(LIBS) $(INCLUDE) $(OPTS) $(DFLAGS) -g -o $@
 
 clean: 
 	rm -f vwrio d.vwrio

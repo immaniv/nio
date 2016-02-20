@@ -1,3 +1,5 @@
+#include <pthread.h>
+
 #define N_READ   0
 #define N_WRITE  1
 
@@ -39,6 +41,17 @@ struct dev_opts {
 	int verbose;
 };
 
+struct worker_opts {
+	int seq_threads;
+	int rnd_threads;
+	int rd_workers;
+	int wr_workers;
+	int seq_rd;
+	int seq_wr;
+	int rnd_rd;
+	int rnd_wr;
+}; 
+
 struct thread_opts {
 	struct dev_opts *opts;
 	int thread_id;
@@ -54,12 +67,14 @@ void sigterm_handler();
 
 void usage(void);
 void parse_args(int argc, char **argv, struct dev_opts *opts);
+void dbg_printf(int verbosity, const char *format, ...);
 
-void cleanup(pthread_mutex_t *mutex, struct dev_opts *opts);
 void *io_thread (void *arg);
 int io_cmd (int device_fd, char *io_buf, int bufsize, int type);
+int worker_setup (struct worker_opts *io_workers, struct dev_opts *iodev);
+int worker_alloc (struct worker_opts *io_workers, struct thread_opts *worker_thread);
+void cleanup(pthread_mutex_t *mutex, struct dev_opts *opts);
 
 double tdiff(struct timespec t1, struct timespec t2, short type);
 
-void dbg_printf(int verbosity, const char *format, ...);
 
