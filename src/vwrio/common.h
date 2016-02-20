@@ -1,4 +1,5 @@
 #include <pthread.h>
+#include <sys/mman.h>
 
 #define N_READ   0
 #define N_WRITE  1

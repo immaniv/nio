@@ -1,12 +1,10 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <sys/mman.h>
 #include <linux/types.h>
 #include <string.h>
 #include <ctype.h>
@@ -58,32 +56,6 @@ tdiff(struct timespec t1, struct timespec t2, short type)
 	}
 }
 
-void 
-sigint_handler()
-{
-	sigterm_handler();
-}
-
-void 
-sigterm_handler()
-{
-	int n;
-	extern struct dev_opts iodev;
-	extern pthread_mutex_t mutexsum;
-	extern struct thread_opts *topts;
-	fprintf(stdout, "Abort received. Cleaning up\n");
-	for (n = 0; n < iodev.nthreads; n++) {
-		fprintf(stdout, "Terminating thread: %d .. \n", n);
-		pthread_cancel(topts[n].tid);
-	}
-	cleanup(&mutexsum, &iodev);
-	exit(2);
-}
-
-void sigkill_handler()
-{
-	sigterm_handler();
-}
 
 void usage(void) 
 {
@@ -100,7 +72,8 @@ void usage(void)
  -T $type_ratio  - ratio of SEQUENTIAL type IO to RANDOM type IO (default is 100\% SEQUENTIAL) \n\
  -m $mode        - R for READ (default), W for WRITE, M for MIXED\n\
  -M $mode_ratio  - ratio of READ mode IO to WRITE mode IO (default is 100\% READ)\n\
- -I                run indefinitely and report periodic stats\n\
+ -I              - run indefinitely and report periodic stats\n\
+ -v              - verbose output\n\
  -h                this help\n\n",\
 "Example:\n",\
 __progname, " -d /dev/sda -b 4096 -s 64 -n 8 -i 64\n\n"\

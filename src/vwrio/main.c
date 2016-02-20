@@ -87,7 +87,6 @@ int main (int argc, char *argv[])
 	dbg_printf(1, "** spawn %d random io type / write io mode workers\n", io_workers.rnd_wr);
 	
 
-	topts = (struct thread_opts *) malloc (sizeof(struct thread_opts) * iodev.nthreads);
 	
 	if ((iodev.fd = open(iodev.devpath, O_RDWR|O_DIRECT)) < 0) {
 		fprintf(stdout, "Unable to open device: %s\n", iodev.devpath);
@@ -103,6 +102,7 @@ int main (int argc, char *argv[])
 		exit(1);
 	}
 
+	topts = (struct thread_opts *) malloc (sizeof(struct thread_opts) * iodev.nthreads);
 	memset(iodev.buf, 0, iodev.bs);
 
 	signal(SIGINT, sigint_handler);
@@ -121,6 +121,7 @@ int main (int argc, char *argv[])
   	for (tnum = 0; tnum < iodev.nthreads; tnum++)  {
  		topts[tnum].thread_id = tnum;
 		topts[tnum].opts = &iodev;
+		topts[tnum].rand_seed = (tnum + 1000); /* pre-fixed random seed */
 	
 		worker_alloc(&io_workers, &topts[tnum]);
 	
@@ -129,16 +130,8 @@ int main (int argc, char *argv[])
 			GET_IO_MODE(topts[tnum].t_mode), \
 			GET_IO_TYPE(topts[tnum].t_type));
 		
-		/* static random seed */
-		topts[tnum].rand_seed = (tnum + 1000); 
-#ifndef DEBUG		
    		pthread_create(&numthreads[tnum], &attr, io_thread, (void *) &topts[tnum]); 
 	}
-#else
-   	}
-	
-	return 1;
-#endif
 
 	pthread_attr_destroy(&attr);
 

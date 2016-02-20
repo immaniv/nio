@@ -79,7 +79,7 @@ int worker_alloc(struct worker_opts *io_workers, struct thread_opts *worker_thre
 		worker_thread->t_mode = worker_thread->opts->mode;
 
 	}
-	dbg_printf(1, "Allocating worker_thread_id: %d, io type: %c, io mode: %c\n",\
+	dbg_printf(1, "Configuring worker_thread_id: %d, io type: %c, io mode: %c\n",\
 		worker_thread->thread_id,\
 		GET_IO_TYPE(worker_thread->t_type),\
 		GET_IO_MODE(worker_thread->t_mode));

@@ -28,12 +28,6 @@ void *io_thread (void *arg)
 	n_iodev = (struct dev_opts *) myopts->opts;
 	id = (int) myopts->thread_id;
 	
-	/* 
-	signal(SIGINT, sigint_handler);
-        signal(SIGTERM, sigterm_handler);
-        signal(SIGKILL, sigkill_handler);
-	*/
-
 	pthread_t myid;
 	myid = pthread_self();
 	myopts->tid = myid;
@@ -42,9 +36,9 @@ void *io_thread (void *arg)
 
 	myfd = dup(n_iodev->fd);
 
-	total_extent = ((n_iodev->size*1024*1024)/n_iodev->bs);
+	total_extent = ((n_iodev->size * 1024 * 1024)/n_iodev->bs);
 
-	dbg_printf(1, "Starting thread %d in mode %c, type %c\n", \
+	dbg_printf(1, "Starting working_thread_d %d in mode %c, type %c\n", \
 		id, GET_IO_MODE(myopts->t_mode), GET_IO_TYPE(myopts->t_type));
 
 	
@@ -69,7 +63,7 @@ RUN_INDEFINITELY:
 			if (myopts->t_mode == N_READ) {
 				for (n = 0; n < total_extent; n++) {
 					clock_gettime(CLOCK_MONOTONIC, &iostartt);
-					if ( nbytes = (read(myfd, n_iodev->buf, n_iodev->bs)) != n_iodev->bs) {
+					if (nbytes = (read(myfd, n_iodev->buf, n_iodev->bs)) != n_iodev->bs) {
 						lr_err++;
 						/* perror("read"); */
 					}
@@ -124,9 +118,6 @@ RUN_INDEFINITELY:
 	}
 
 	diff = tdiff(startt, endt, SECS);
-
-	/* diff = (((endt.tv_sec*1000000)+(endt.tv_nsec/1000)) - \
-	       ((startt.tv_sec*1000000)+(startt.tv_nsec/1000)))/1000000.0;  */
 
 
 	lIOps = n/(diff/iter); 
