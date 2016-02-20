@@ -16,13 +16,16 @@
 #define	RANDOM			1
 #define	MIXED			2
 
-#define SECS	1
-#define	MSECS	2
-#define USECS	3
-#define NSECS	4
+#define SECS	1.0E1
+#define	MSECS	1.0E3
+#define USECS	1.0E6
+#define NSECS	1.0E9
 
 #define GET_IO_MODE(a)  ((a) ? ((a == N_WRITE) ? 'W' : 'M') : 'R')
 #define GET_IO_TYPE(a)  ((a) ? ((a == RANDOM) ? 'R' : 'M') : 'S') 
+
+#define TDIFF(tv1, tv2, TRES)	(((tv2.tv_sec * NSECS) + (tv2.tv_nsec)) - \
+				((tv1.tv_sec * NSECS) + (tv1.tv_nsec)))/TRES;
 
 struct dev_opts {
 	int fd;
@@ -75,7 +78,3 @@ int io_cmd (int device_fd, char *io_buf, int bufsize, int type);
 int worker_setup (struct worker_opts *io_workers, struct dev_opts *iodev);
 int worker_alloc (struct worker_opts *io_workers, struct thread_opts *worker_thread);
 void cleanup(pthread_mutex_t *mutex, struct dev_opts *opts);
-
-double tdiff(struct timespec t1, struct timespec t2, short type);
-
-

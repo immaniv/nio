@@ -15,11 +15,6 @@
 #include "common.h"
 
 
-/* 
-Future Options
-
-*/
-
 void 
 dbg_printf(int verbosity, const char *format, ...) 
 {
@@ -41,23 +36,8 @@ cleanup(pthread_mutex_t *mutex, struct dev_opts *opts)
 	}
 }
 
-double
-tdiff(struct timespec t1, struct timespec t2, short type) 
-{
-	switch (type) {
-	case SECS :
-		return ((((t2.tv_sec * 1.0E9) + (t2.tv_nsec)) - ((t1.tv_sec * 1.0E9) + (t1.tv_nsec))))/1.0E9;
-	case MSECS :
-		return ((((t2.tv_sec * 1.0E9) + (t2.tv_nsec)) - ((t1.tv_sec * 1.0E9) + (t1.tv_nsec))))/1.0E6;
-	case USECS :
-		return ((((t2.tv_sec * 1.0E9) + (t2.tv_nsec)) - ((t1.tv_sec * 1.0E9) + (t1.tv_nsec))))/1.0E3;
-	case NSECS :
-		return ((((t2.tv_sec * 1.0E9) + (t2.tv_nsec)) - ((t1.tv_sec * 1.0E9) + (t1.tv_nsec))));
-	}
-}
-
-
-void usage(void) 
+void 
+usage(void) 
 {
 	extern char *__progname;
 	
@@ -79,7 +59,10 @@ void usage(void)
 __progname, " -d /dev/sda -b 4096 -s 64 -n 8 -i 64\n\n"\
 	);
 }
-void parse_args (int argc, char **argv, struct dev_opts *opts)
+
+
+void 
+parse_args (int argc, char **argv, struct dev_opts *opts)
 {
 	int carg;
 
@@ -180,5 +163,4 @@ void parse_args (int argc, char **argv, struct dev_opts *opts)
 		usage();
 		exit(1);
 	}
-			
 }

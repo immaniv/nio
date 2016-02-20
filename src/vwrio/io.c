@@ -68,7 +68,7 @@ RUN_INDEFINITELY:
 						/* perror("read"); */
 					}
 					clock_gettime(CLOCK_MONOTONIC, &ioendt);
-					iodiff += tdiff(iostartt, ioendt, USECS); 
+					iodiff += TDIFF(iostartt, ioendt, USECS); 
 				}
 			} else if (myopts->t_mode == N_WRITE) {
 				for (n = 0; n < total_extent; n++) {
@@ -78,7 +78,7 @@ RUN_INDEFINITELY:
 						/* perror("write"); */
 					}
 					clock_gettime(CLOCK_MONOTONIC, &ioendt);
-					iodiff += tdiff(iostartt, ioendt, USECS); 
+					iodiff += TDIFF(iostartt, ioendt, USECS); 
 				}
 			}
 			iodiff /= n;
@@ -98,7 +98,7 @@ RUN_INDEFINITELY:
 						/* perror("read"); */
 					}
 					clock_gettime(CLOCK_MONOTONIC, &ioendt);
-					iodiff += tdiff(iostartt, ioendt, USECS); 
+					iodiff += TDIFF(iostartt, ioendt, USECS); 
 				}
 			} else if (myopts->t_mode == N_WRITE) {
 				for (n = 0; n < total_extent; n++) {
@@ -109,7 +109,7 @@ RUN_INDEFINITELY:
 						/* perror("write"); */
 					}
 					clock_gettime(CLOCK_MONOTONIC, &ioendt);
-					iodiff += tdiff(iostartt, ioendt, USECS);
+					iodiff += TDIFF(iostartt, ioendt, USECS);
 				}
 			}
 			iodiff /= n;
@@ -117,7 +117,7 @@ RUN_INDEFINITELY:
 		clock_gettime(CLOCK_MONOTONIC, &endt);
 	}
 
-	diff = tdiff(startt, endt, SECS);
+	diff = TDIFF(startt, endt, SECS);
 
 
 	lIOps = n/(diff/iter); 
