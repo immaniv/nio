@@ -97,13 +97,14 @@ static ssize_t aio_pwrite(int fd, void *buf, size_t nbytes, off_t offset)
 
 static void aio_setup(void)
 {
+	int x, write_test=0;
 	memset(&aio_ctx, 0, sizeof aio_ctx);
 	memset(&aio_cb, 0, sizeof aio_cb);
 
 	if (io_setup(1, &aio_ctx))
 		err(2, "aio setup failed");
 
-	/* make_request = write_test ? aio_pwrite : aio_pread; */
+/* 	x = write_test ? aio_pwrite : aio_pread;  */
 }
 
 

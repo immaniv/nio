@@ -3,7 +3,7 @@
 int
 init_defaults (struct dev_opts *dopts) 
 {
-	dopts->bs = DEFAULT_BLOCK_SIZE;
+	dopts->blksize = DEFAULT_BLOCK_SIZE;
 	dopts->size = DEFAULT_DEV_SIZE;
 	dopts->iter = DEFAULT_ITER;
 	dopts->mode = N_READ;
@@ -14,6 +14,7 @@ init_defaults (struct dev_opts *dopts)
 	dopts->devselect = 0;
 	dopts->indefinite = 0;
 	dopts->verbose = 0;
+	dopts->use_dio = 0;
 
 	return 0;
 }

@@ -4,7 +4,6 @@ int
 worker_setup(struct worker_opts *io_workers, struct dev_opts *iodev)
 {
  	if (iodev->type == MIXED && iodev->seq_ratio !=0) {
-                dbg_printf(1, "TYPE: %c, SEQ_RATIO: %d, RAND_RATIO: %d\n", GET_IO_TYPE(iodev->type), iodev->seq_ratio, (100 - iodev->seq_ratio));
                 io_workers->seq_threads = (int) ((iodev->nthreads * iodev->seq_ratio)/100);
                 if (!io_workers->seq_threads)
                         io_workers->seq_threads = 1;
@@ -16,7 +15,6 @@ worker_setup(struct worker_opts *io_workers, struct dev_opts *iodev)
 
 
         if (iodev->mode == MIXED && iodev->read_ratio != 0) {
-                dbg_printf(1, "MODE: %c, READ_RATIO: %d, WRITE_RATIO: %d\n", GET_IO_MODE(iodev->mode), iodev->read_ratio, (100 - iodev->read_ratio));
                 io_workers->rd_workers = (int) ((iodev->nthreads * iodev->read_ratio)/100);
                 if (!io_workers->rd_workers)
                         io_workers->rd_workers = 1;
@@ -83,10 +81,6 @@ int worker_alloc(struct worker_opts *io_workers, struct thread_opts *worker_thre
 		worker_thread->t_mode = worker_thread->opts->mode;
 
 	}
-	dbg_printf(1, "Configuring worker_thread_id: %d, io type: %c, io mode: %c\n",\
-		worker_thread->thread_id,\
-		GET_IO_TYPE(worker_thread->t_type),\
-		GET_IO_MODE(worker_thread->t_mode));
 
 	return 0;
 }

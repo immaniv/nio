@@ -32,7 +32,7 @@ cleanup(pthread_mutex_t *mutex, struct dev_opts *opts)
 	pthread_mutex_destroy(mutex);
 	if (opts != NULL) {
         	close(opts->fd); 
-		munmap(opts->buf, opts->bs);
+		munmap(opts->buf, opts->blksize);
 	}
 }
 
@@ -52,6 +52,7 @@ usage(void)
  -T $type_ratio  - ratio of SEQUENTIAL type IO to RANDOM type IO (default is 100\% SEQUENTIAL) \n\
  -m $mode        - R for READ (default), W for WRITE, M for MIXED\n\
  -M $mode_ratio  - ratio of READ mode IO to WRITE mode IO (default is 100\% READ)\n\
+ -D 		 - use Linux DIRECT IO interface\n\
  -I              - run indefinitely and report periodic stats\n\
  -v              - verbose output\n\
  -h                this help\n\n",\
@@ -73,7 +74,7 @@ parse_args (int argc, char **argv, struct dev_opts *opts)
 
 	opterr = 0;
 	
-	while ((carg = getopt(argc, argv, "hIvd:m:b:t:s:n:i:M:T:")) != -1)
+	while ((carg = getopt(argc, argv, "hIDvd:m:b:t:s:n:i:M:T:")) != -1)
 		switch (carg) {
 			case 'M':
 				opts->read_ratio = atoi(optarg);
@@ -81,6 +82,9 @@ parse_args (int argc, char **argv, struct dev_opts *opts)
 					usage();
 					exit(1);
 				}
+				break;
+			case 'D':
+				opts->use_dio = 1;
 				break;
 			case 'T':
 				opts->seq_ratio = atoi(optarg);
@@ -94,8 +98,8 @@ parse_args (int argc, char **argv, struct dev_opts *opts)
 				opts->devselect = 1;
 				break;
 			case 'b':
-				opts->bs = atoi(optarg);
-				if (opts->bs < 512 || opts->bs > (1024*4096)) {
+				opts->blksize = atoi(optarg);
+				if (opts->blksize < 512 || opts->blksize > (1024*4096)) {
 					usage();
 					exit(1);
 				}
@@ -172,17 +176,19 @@ parse_args (int argc, char **argv, struct dev_opts *opts)
  Size: %d\n\
  Iterations: %d\n\
  Threads: %d\n\
- Mode: %d\n\
- Type: %d\n\
+ Mode: %c\n\
+ Type: %c\n\
  Read Ratio: %d\n\
  Sequential Ratio: %d\n\
+ Direct IO Interface: %c\n\
 -----------------------------\n",
 		opts->devpath,
 		opts->size,
 		opts->iter,
 		opts->nthreads,
-		opts->mode,
-		opts->type,
+		GET_IO_MODE(opts->mode),
+		GET_IO_TYPE(opts->type),
 		opts->read_ratio,
-		opts->seq_ratio);
+		opts->seq_ratio,
+		(opts->use_dio) ? 'Y':'N');
 }

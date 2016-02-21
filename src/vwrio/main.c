@@ -16,6 +16,7 @@
 #include <sys/statvfs.h>
 #include <signal.h>
 
+
 #include "common.h"
 #include "timing.h"
 
@@ -37,46 +38,46 @@ int r_err, w_err;
 int main (int argc, char *argv[])
 {
 	int i, tnum;
-	struct dev_opts *iodevlist;
 	struct worker_opts io_workers;
 
 	memset(&io_workers, 0, sizeof(io_workers));
-
 	init_defaults(&iodev);
 	r_err = 0;
 	w_err = 0;
 	
-
 	parse_args(argc, argv, &iodev);
-
-
 	worker_setup(&io_workers, &iodev);
 
-	dbg_printf(1, "io mode: %c, R workers: %d, W workers: %d\n", GET_IO_MODE(iodev.mode), io_workers.rd_workers, io_workers.wr_workers);
-	dbg_printf(1, "io type: %c, S threads: %d, R threads: %d\n", GET_IO_TYPE(iodev.type), io_workers.seq_threads, io_workers.rnd_threads);
+	dbg_printf(1, ":: io mode: %c, R workers: %d, W workers: %d\n", GET_IO_MODE(iodev.mode), io_workers.rd_workers, io_workers.wr_workers);
+	dbg_printf(1, ":: io type: %c, S threads: %d, R threads: %d\n", GET_IO_TYPE(iodev.type), io_workers.seq_threads, io_workers.rnd_threads);
 	dbg_printf(1, "** spawn %d sequential io type / read io mode workers\n", io_workers.seq_rd);
 	dbg_printf(1, "** spawn %d sequential io type / write io mode workers\n", io_workers.seq_wr);
 	dbg_printf(1, "** spawn %d random io type / read io mode workers\n", io_workers.rnd_rd);
 	dbg_printf(1, "** spawn %d random io type / write io mode workers\n", io_workers.rnd_wr);
 	
-
-	
-	if ((iodev.fd = open(iodev.devpath, O_RDWR|O_DIRECT)) < 0) {
+	if (iodev.use_dio) {
+		if ((iodev.fd = open(iodev.devpath, O_RDWR|O_DIRECT)) < 0) {
 		fprintf(stdout, "Unable to open device: %s\n", iodev.devpath);
 		perror("open");
 		exit(1);
+		}
+	} else {
+		if ((iodev.fd = open(iodev.devpath, O_RDWR)) < 0) {
+		fprintf(stdout, "Unable to open device: %s\n", iodev.devpath);
+		perror("open");
+		exit(1);
+		}
 	}
-
-	
-	if (((iodev.buf = mmap(NULL, iodev.bs, PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_PRIVATE, -1, 0)) == MAP_FAILED) \
-		|| (mlock(iodev.buf, iodev.bs) == -1)) {
+		
+	if (((iodev.buf = mmap(NULL, iodev.blksize, PROT_READ|PROT_WRITE, MAP_ANONYMOUS|MAP_PRIVATE, -1, 0)) == MAP_FAILED) \
+		|| (mlock(iodev.buf, iodev.blksize) == -1)) {
 		perror("mmap");
 		perror("mlock");
 		exit(1);
 	}
 
 	topts = (struct thread_opts *) malloc (sizeof(struct thread_opts) * iodev.nthreads);
-	memset(iodev.buf, 0, iodev.bs);
+	memset(iodev.buf, 0, iodev.blksize);
 
 	signal(SIGINT, sigint_handler);
 	signal(SIGTERM, sigterm_handler);
@@ -97,12 +98,6 @@ int main (int argc, char *argv[])
 		topts[tnum].rand_seed = (tnum + 1000); /* pre-fixed random seed */
 	
 		worker_alloc(&io_workers, &topts[tnum]);
-	
-		dbg_printf(1, "Launching worker_thread_id: %d, mode = %c, type = %c\n", \
-			tnum, \
-			GET_IO_MODE(topts[tnum].t_mode), \
-			GET_IO_TYPE(topts[tnum].t_type));
-		
    		pthread_create(&numthreads[tnum], &attr, io_thread, (void *) &topts[tnum]); 
 	}
 
@@ -110,7 +105,7 @@ int main (int argc, char *argv[])
 
 	for(i = 0; i < iodev.nthreads; i++) {
 		pthread_join(numthreads[i], &status);
-		usleep (1000 * MSECS);
+		usleep (100 * MSECS);
   	}
 
 	fprintf(stdout, "dev: %s | n_threads: %02d | mode: %c | type: %c | blksize: %d (B) | iops: %.02f | MB/s: %.02f | svc_time: %.02f (ms)\n",
@@ -118,10 +113,10 @@ int main (int argc, char *argv[])
 		iodev.nthreads, 
 		(iodev.mode) ? ((iodev.mode == N_WRITE) ? 'W' : 'M'): 'R', 
 		(iodev.type) ? ((iodev.type == RANDOM) ? 'R' : 'M') : 'S',	
-		iodev.bs, 
+		iodev.blksize, 
 		IOPs,
 		MBps,
-		(avg_lat/1000.0)/iodev.nthreads);
+		(avg_lat/MSECS)/iodev.nthreads);
 
 	if (iodev.verbose) 	
 		fprintf(stdout, "[READ] IO/s: %.02f, MB/s %.02f, Errors: %d\n[WRITE] IO/s: %.02f, MB/s %.02f, Errors: %d\n",

@@ -38,9 +38,9 @@ void *io_thread (void *arg)
 
 	myfd = dup(n_iodev->fd);
 
-	total_extent = ((n_iodev->size * 1024 * 1024)/n_iodev->bs);
+	total_extent = ((n_iodev->size * 1024 * 1024)/n_iodev->blksize);
 
-	dbg_printf(1, "Starting working_thread_d %d in mode %c, type %c\n", \
+	dbg_printf(1, "Running worker_thread_d %d in mode %c, type %c\n", \
 		id, GET_IO_MODE(myopts->t_mode), GET_IO_TYPE(myopts->t_type));
 
 	
@@ -60,12 +60,10 @@ RUN_INDEFINITELY:
 		GET_SYS_CLOCK(&startt);
 		for (iter = 0; iter < n_iodev->iter; iter++) {
 			lseek(myfd, 0, SEEK_SET);
-			int total_extent = ((n_iodev->size*1024*1024)/n_iodev->bs);
-	
 			if (myopts->t_mode == N_READ) {
 				for (n = 0; n < total_extent; n++) {
 					GET_SYS_CLOCK(&iostartt);
-					if ((nbytes = (read(myfd, n_iodev->buf, n_iodev->bs))) != n_iodev->bs) {
+					if ((nbytes = (read(myfd, n_iodev->buf, n_iodev->blksize))) != n_iodev->blksize) {
 						lr_err++;
 						/* perror("read"); */
 					}
@@ -75,7 +73,7 @@ RUN_INDEFINITELY:
 			} else if (myopts->t_mode == N_WRITE) {
 				for (n = 0; n < total_extent; n++) {
 					GET_SYS_CLOCK(&iostartt);
-					if ((nbytes = (write(myfd, n_iodev->buf, n_iodev->bs))) != n_iodev->bs) { 
+					if ((nbytes = (write(myfd, n_iodev->buf, n_iodev->blksize))) != n_iodev->blksize) { 
 						lw_err++;
 						/* perror("write"); */
 					}
@@ -90,12 +88,11 @@ RUN_INDEFINITELY:
 		GET_SYS_CLOCK(&startt);
 		for (iter = 0; iter < n_iodev->iter; iter++) {
 			lseek(myfd, 0, SEEK_SET);
-			int total_extent = ((n_iodev->size*1024*1024)/n_iodev->bs);
 			if (myopts->t_mode == N_READ) {
 				for (n = 0; n < total_extent; n++) {
-					lseek(myfd, (n_iodev->bs * (rand() % total_extent)), SEEK_SET);
+					lseek(myfd, (n_iodev->blksize * (rand() % total_extent)), SEEK_SET);
 					GET_SYS_CLOCK(&iostartt);
-					if ((nbytes = (read(myfd, n_iodev->buf, n_iodev->bs))) != n_iodev->bs) {
+					if ((nbytes = (read(myfd, n_iodev->buf, n_iodev->blksize))) != n_iodev->blksize) {
 						lr_err++;
 						/* perror("read"); */
 					}
@@ -104,9 +101,9 @@ RUN_INDEFINITELY:
 				}
 			} else if (myopts->t_mode == N_WRITE) {
 				for (n = 0; n < total_extent; n++) {
-					lseek(myfd, (n_iodev->bs * (rand() % total_extent)), SEEK_SET);
+					lseek(myfd, (n_iodev->blksize * (rand() % total_extent)), SEEK_SET);
 					GET_SYS_CLOCK(&iostartt);
-					if ((nbytes = (write(myfd, n_iodev->buf, n_iodev->bs))) != n_iodev->bs) { 
+					if ((nbytes = (write(myfd, n_iodev->buf, n_iodev->blksize))) != n_iodev->blksize) { 
 						lw_err++;
 						/* perror("write"); */
 					}
@@ -122,13 +119,13 @@ RUN_INDEFINITELY:
 	diff = GET_DIFF_SECS(TDIFF(startt, endt));
 	
 	lIOps = n/(diff/iter); 
-	lMBps = ((n/(diff/iter))*n_iodev->bs)/(1024*1024);
+	lMBps = ((n/(diff/iter))*n_iodev->blksize)/(1024*1024);
 	lavg_lat = (iodiff/iter);
 	
 	if (n_iodev->verbose || n_iodev->indefinite) {
 		fprintf(stdout, "thread id: %d | blksize: %d (B) | mode: %c | type: %c | iops: %.02f | MB/s: %.02f | svc_time: %.2f (ms)\n", \
 			id, \
-			n_iodev->bs, \
+			n_iodev->blksize, \
 			GET_IO_MODE(myopts->t_mode), \
 			GET_IO_TYPE(myopts->t_type), \
 			lIOps, \

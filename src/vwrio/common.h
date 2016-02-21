@@ -4,7 +4,7 @@
 #define N_READ   0
 #define N_WRITE  1
 
-#define DEFAULT_BLOCK_SIZE 	65536
+#define DEFAULT_BLOCK_SIZE 	4096
 #define DEFAULT_DEV_SIZE	16
 #define DEFAULT_IO_MODE		N_READ
 #define DEFAULT_ITER		16
@@ -23,7 +23,7 @@
 struct dev_opts {
 	int fd;
 	char *devpath;
-	int bs;
+	int blksize;
 	int size;
 	int mode;
 	int iter;
@@ -36,6 +36,7 @@ struct dev_opts {
 	int seq_ratio;
 	int total_extents;
 	int verbose;
+	int use_dio;
 };
 
 struct worker_opts {
