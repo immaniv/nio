@@ -163,4 +163,26 @@ parse_args (int argc, char **argv, struct dev_opts *opts)
 		usage();
 		exit(1);
 	}
+	
+	dbg_printf(1, "\
+-----------------------------\n\
+ Execution parameters: \n\
+-----------------------------\n\
+ Device: %s\n\
+ Size: %d\n\
+ Iterations: %d\n\
+ Threads: %d\n\
+ Mode: %d\n\
+ Type: %d\n\
+ Read Ratio: %d\n\
+ Sequential Ratio: %d\n\
+-----------------------------\n",
+		opts->devpath,
+		opts->size,
+		opts->iter,
+		opts->nthreads,
+		opts->mode,
+		opts->type,
+		opts->read_ratio,
+		opts->seq_ratio);
 }

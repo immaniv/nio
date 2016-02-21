@@ -66,6 +66,8 @@ void usage(void);
 void parse_args(int argc, char **argv, struct dev_opts *opts);
 void dbg_printf(int verbosity, const char *format, ...);
 
+int init_defaults(struct dev_opts *d_opts);
+
 void *io_thread (void *arg);
 int io_cmd (int device_fd, char *io_buf, int bufsize, int type);
 int worker_setup (struct worker_opts *io_workers, struct dev_opts *iodev);

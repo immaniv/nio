@@ -41,44 +41,14 @@ int main (int argc, char *argv[])
 	struct worker_opts io_workers;
 
 	memset(&io_workers, 0, sizeof(io_workers));
-	
-	iodev.bs = DEFAULT_BLOCK_SIZE;
-	iodev.size = DEFAULT_DEV_SIZE;
-	iodev.iter = DEFAULT_ITER;
-	iodev.mode = N_READ;
-	iodev.nthreads = DEFAULT_NTHREADS;
-	iodev.type = SEQUENTIAL;
-	iodev.read_ratio = DEFAULT_READ_RATIO;
-	iodev.seq_ratio = DEFAULT_SEQ_RATIO;
-	iodev.devselect = 0;
-	iodev.indefinite = 0;
-	iodev.verbose = 0;
+
+	init_defaults(&iodev);
 	r_err = 0;
 	w_err = 0;
+	
 
 	parse_args(argc, argv, &iodev);
 
-	dbg_printf(1, "\
------------------------------\n\
- Execution parameters: \n\
------------------------------\n\
- Device: %s\n\
- Size: %d\n\
- Iterations: %d\n\
- Threads: %d\n\
- Mode: %d\n\
- Type: %d\n\
- Read Ratio: %d\n\
- Sequential Ratio: %d\n\
------------------------------\n",
-		iodev.devpath,
-		iodev.size,
-		iodev.iter,
-		iodev.nthreads,
-		iodev.mode,
-		iodev.type,
-		iodev.read_ratio,
-		iodev.seq_ratio);
 
 	worker_setup(&io_workers, &iodev);
 
