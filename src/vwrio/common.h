@@ -37,6 +37,7 @@ struct dev_opts {
 	int total_extents;
 	int verbose;
 	int use_dio;
+	int use_aio;
 };
 
 struct worker_opts {

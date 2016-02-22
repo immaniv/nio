@@ -16,9 +16,9 @@
 #include <sys/statvfs.h>
 #include <signal.h>
 
-
 #include "common.h"
 #include "timing.h"
+#include "sysconf.h"
 
 
 double IOPs, MBps; 
@@ -37,8 +37,10 @@ int r_err, w_err;
 
 int main (int argc, char *argv[])
 {
-	int i, tnum;
+	int i, tnum, l_th_cpu;
 	struct worker_opts io_workers;
+	cpu_set_t cpuset;
+	struct sys_info sys_config;
 
 	memset(&io_workers, 0, sizeof(io_workers));
 	init_defaults(&iodev);
@@ -47,6 +49,7 @@ int main (int argc, char *argv[])
 	
 	parse_args(argc, argv, &iodev);
 	worker_setup(&io_workers, &iodev);
+	sys_conf(&sys_config);
 
 	dbg_printf(1, ":: io mode: %c, R workers: %d, W workers: %d\n", GET_IO_MODE(iodev.mode), io_workers.rd_workers, io_workers.wr_workers);
 	dbg_printf(1, ":: io type: %c, S threads: %d, R threads: %d\n", GET_IO_TYPE(iodev.type), io_workers.seq_threads, io_workers.rnd_threads);
@@ -91,14 +94,26 @@ int main (int argc, char *argv[])
 	pthread_mutex_init(&wmutex, NULL);
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+	
+	l_th_cpu = 0;
 
   	for (tnum = 0; tnum < iodev.nthreads; tnum++)  {
+		CPU_ZERO(&cpuset);
+
+		if (l_th_cpu < sys_config.num_cpus) {
+			CPU_SET(l_th_cpu, &cpuset);
+			l_th_cpu++;
+		} else {
+			l_th_cpu = 0;
+		}
+
  		topts[tnum].thread_id = tnum;
 		topts[tnum].opts = &iodev;
 		topts[tnum].rand_seed = (tnum + 1000); /* pre-fixed random seed */
 	
 		worker_alloc(&io_workers, &topts[tnum]);
    		pthread_create(&numthreads[tnum], &attr, io_thread, (void *) &topts[tnum]); 
+		pthread_setaffinity_np(numthreads[tnum], sizeof(cpu_set_t), &cpuset);
 	}
 
 	pthread_attr_destroy(&attr);

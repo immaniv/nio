@@ -1,5 +1,5 @@
 #include "common.h"
-
+#include <unistd.h>
 int
 init_defaults (struct dev_opts *dopts) 
 {
@@ -18,3 +18,4 @@ init_defaults (struct dev_opts *dopts)
 
 	return 0;
 }
+
