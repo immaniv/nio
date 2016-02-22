@@ -105,6 +105,8 @@ int main (int argc, char *argv[])
 			l_th_cpu++;
 		} else {
 			l_th_cpu = 0;
+			CPU_SET(l_th_cpu, &cpuset);
+			l_th_cpu++;
 		}
 
  		topts[tnum].thread_id = tnum;
