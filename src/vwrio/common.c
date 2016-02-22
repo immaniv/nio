@@ -53,6 +53,14 @@ usage(void)
  -m $mode        - R for READ (default), W for WRITE, M for MIXED\n\
  -M $mode_ratio  - ratio of READ mode IO to WRITE mode IO (default is 100\% READ)\n\
  -D 		 - use Linux DIRECT IO interface\n\
+ -C	         - use *all* CPUs to drive I/O (one cpu per worker thread). CPUs will be \n\
+                   oversubscribed in a round-robin manner if the threads specified exceed\n\
+                   the number of available CPUs. By default, all the worker threads are\n\
+                   scheduled by the OS.\n\
+ -c              - specify CPU binding on a per thread basis. Ex: c0:t1,c1,t2 will bind\n\
+                   thread t1 to CPU 0 and thread t2 to CPU 1. Currently, thread naming is\n\
+                   arbitrary. For instance, if you specify '-n4' (4 worker threads), the \n\
+                   first worker thread would be t1, the second t2 and so on. \n\
  -I              - run indefinitely and report periodic stats\n\
  -v              - verbose output\n\
  -h                this help\n\n",\
@@ -74,7 +82,7 @@ parse_args (int argc, char **argv, struct dev_opts *opts)
 
 	opterr = 0;
 	
-	while ((carg = getopt(argc, argv, "hIDvd:m:b:t:s:n:i:M:T:")) != -1)
+	while ((carg = getopt(argc, argv, "hIDCvd:m:c:b:t:s:n:i:M:T:")) != -1)
 		switch (carg) {
 			case 'M':
 				opts->read_ratio = atoi(optarg);
@@ -85,6 +93,9 @@ parse_args (int argc, char **argv, struct dev_opts *opts)
 				break;
 			case 'D':
 				opts->use_dio = 1;
+				break;
+			case 'C':
+				opts->use_rr_cpu = 1;
 				break;
 			case 'T':
 				opts->seq_ratio = atoi(optarg);
@@ -129,13 +140,14 @@ parse_args (int argc, char **argv, struct dev_opts *opts)
 				opts->indefinite = 1;
 				break;
 			case 'm':
-				if (optarg[0] == 'R')
+				if (optarg[0] == 'R') {
 					opts->mode = N_READ;
-				else if (optarg[0] == 'W')
+				} else if (optarg[0] == 'W') {
 					opts->mode = N_WRITE;
-				else if (optarg[0] == 'M')
+					opts->read_ratio = 0;
+				} else if (optarg[0] == 'M') {
 					opts->mode = MIXED;
-				else {
+				} else {
 					usage();
 					exit(1);
 				}
@@ -143,9 +155,10 @@ parse_args (int argc, char **argv, struct dev_opts *opts)
 			case 't':
 				if (optarg[0] == 'S' || optarg[0] == 's') 
 					opts->type = SEQUENTIAL;
-				else if (optarg[0] == 'R' || optarg[0] == 'r')
+				else if (optarg[0] == 'R' || optarg[0] == 'r') {
 					opts->type = RANDOM;
-				else if (optarg[0] == 'M' || optarg[0] == 'm')
+					opts->seq_ratio = 0;
+				} else if (optarg[0] == 'M' || optarg[0] == 'm')
 					opts->type = MIXED;
 				else {
 					usage();
@@ -180,7 +193,7 @@ parse_args (int argc, char **argv, struct dev_opts *opts)
  Type: %c\n\
  Read Ratio: %d\n\
  Sequential Ratio: %d\n\
- Direct IO Interface: %c\n\
+ Direct IO Interface: %s\n\
 -----------------------------\n",
 		opts->devpath,
 		opts->size,
@@ -190,5 +203,5 @@ parse_args (int argc, char **argv, struct dev_opts *opts)
 		GET_IO_TYPE(opts->type),
 		opts->read_ratio,
 		opts->seq_ratio,
-		(opts->use_dio) ? 'Y':'N');
+		(opts->use_dio) ? "Specified" : "Not Specified");
 }

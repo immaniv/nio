@@ -14,7 +14,8 @@ void *io_thread (void *arg)
 	extern double IOPs, MBps;
 	extern double r_IOPs, r_MBps, r_avg_lat, r_err;
 	extern double w_IOPs, w_MBps, w_avg_lat, w_err;
-	extern double min_lat, max_lat, avg_lat;
+	/* extern double min_lat, max_lat, avg_lat; */
+	extern double avg_lat; 
 
 	struct dev_opts *n_iodev;
 	struct timespec startt, endt, iostartt, ioendt;
@@ -59,11 +60,11 @@ RUN_INDEFINITELY:
 	if (myopts->t_type == SEQUENTIAL) {
 		GET_SYS_CLOCK(&startt);
 		for (iter = 0; iter < n_iodev->iter; iter++) {
-			lseek(myfd, 0, SEEK_SET);
+			/* lseek(myfd, 0, SEEK_SET); */
 			if (myopts->t_mode == N_READ) {
 				for (n = 0; n < total_extent; n++) {
 					GET_SYS_CLOCK(&iostartt);
-					if ((nbytes = (read(myfd, n_iodev->buf, n_iodev->blksize))) != n_iodev->blksize) {
+					if ((nbytes = (pread(myfd, n_iodev->buf, n_iodev->blksize, n))) != n_iodev->blksize) {
 						lr_err++;
 						/* perror("read"); */
 					}
@@ -73,7 +74,7 @@ RUN_INDEFINITELY:
 			} else if (myopts->t_mode == N_WRITE) {
 				for (n = 0; n < total_extent; n++) {
 					GET_SYS_CLOCK(&iostartt);
-					if ((nbytes = (write(myfd, n_iodev->buf, n_iodev->blksize))) != n_iodev->blksize) { 
+					if ((nbytes = (pwrite(myfd, n_iodev->buf, n_iodev->blksize, n))) != n_iodev->blksize) { 
 						lw_err++;
 						/* perror("write"); */
 					}
@@ -90,9 +91,9 @@ RUN_INDEFINITELY:
 			lseek(myfd, 0, SEEK_SET);
 			if (myopts->t_mode == N_READ) {
 				for (n = 0; n < total_extent; n++) {
-					lseek(myfd, (n_iodev->blksize * (rand() % total_extent)), SEEK_SET);
+					/* lseek(myfd, (n_iodev->blksize * (rand() % total_extent)), SEEK_SET); */
 					GET_SYS_CLOCK(&iostartt);
-					if ((nbytes = (read(myfd, n_iodev->buf, n_iodev->blksize))) != n_iodev->blksize) {
+					if ((nbytes = (pread(myfd, n_iodev->buf, n_iodev->blksize, (n_iodev->blksize * (rand() % total_extent))))) != n_iodev->blksize) {
 						lr_err++;
 						/* perror("read"); */
 					}
@@ -101,9 +102,9 @@ RUN_INDEFINITELY:
 				}
 			} else if (myopts->t_mode == N_WRITE) {
 				for (n = 0; n < total_extent; n++) {
-					lseek(myfd, (n_iodev->blksize * (rand() % total_extent)), SEEK_SET);
+					/* lseek(myfd, (n_iodev->blksize * (rand() % total_extent)), SEEK_SET); */
 					GET_SYS_CLOCK(&iostartt);
-					if ((nbytes = (write(myfd, n_iodev->buf, n_iodev->blksize))) != n_iodev->blksize) { 
+					if ((nbytes = (pwrite(myfd, n_iodev->buf, n_iodev->blksize, (n_iodev->blksize * (rand() % total_extent))))) != n_iodev->blksize) { 
 						lw_err++;
 						/* perror("write"); */
 					}

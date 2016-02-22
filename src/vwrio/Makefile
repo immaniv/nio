@@ -1,11 +1,12 @@
 LIBS=-lrt -lpthread
 INCLUDE=-I .
 CC=gcc 
-OPTS=-O3 # -Wall
+OPTS=-O3 -Wall
 DFLAGS=-DLINUX
 DEBUGFLAGS=-DDEBUG
-BSRC=main.c iothread.c work.c signal.c common.c init.c sysconf.c
-LSRC=iothread.c work.c signal.c common.c aio.c init.c sysconf.c
+BSRC=main.c iothread.c work.c signal.c common.c init.c sysconf.c thread.c
+LSRC=iothread.c work.c signal.c common.c aio.c init.c sysconf.c thread.c
+OBJS=iothread.o work.o signal.o common.o init.o sysconf.o thread.o
 AR=ar
 
 all: vwrio d.vwrio libxio.so libxio.a
@@ -19,10 +20,10 @@ d.vwrio: $(BSRC)
 
 libxio.so: $(LSRC)
 	$(CC) -fPIC -g -c $^
-	$(CC) -shared -Wl,-soname,libxio.so -o libxio.so iothread.o work.o signal.o common.o aio.o
+	$(CC) -shared -Wl,-soname,$@ -o $@ $(OBJS)
 
 libxio.a: $(LSRC)
 	$(CC) -fPIC -g -c $^
-	$(AR) rcs $@ iothread.o work.o signal.o common.o aio.o
+	$(AR) rcs $@ $(OBJS)
 clean: 
 	rm -f vwrio d.vwrio *.o *.so *.a

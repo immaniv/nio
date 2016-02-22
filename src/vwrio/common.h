@@ -38,6 +38,7 @@ struct dev_opts {
 	int verbose;
 	int use_dio;
 	int use_aio;
+	int use_rr_cpu;
 };
 
 struct worker_opts {
