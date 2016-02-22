@@ -35,7 +35,11 @@ worker_setup(struct worker_opts *io_workers, struct dev_opts *iodev)
 			io_workers->seq_rd = io_workers->seq_threads - io_workers->seq_wr;
 			io_workers->rnd_wr = (int) ((io_workers->rnd_threads + io_workers->rd_workers) / 2);
 			io_workers->rnd_rd = io_workers->rnd_threads - io_workers->rnd_wr;
-		} else if (io_workers->seq_threads > io_workers->seq_threads && io_workers->wr_workers == io_workers->rd_workers) {
+		} else if (io_workers->seq_threads > io_workers->rnd_threads && io_workers->wr_workers == io_workers->rd_workers) {
+			io_workers->seq_wr = (int) ((io_workers->seq_threads + io_workers->wr_workers) / 2);
+			io_workers->seq_rd = io_workers->seq_threads - io_workers->seq_wr;
+			io_workers->rnd_wr = (int) ((io_workers->rnd_threads + io_workers->rd_workers) / 2);
+			io_workers->rnd_rd = io_workers->rnd_threads - io_workers->rnd_wr;
 		} else if (io_workers->rnd_threads > io_workers->seq_threads && io_workers->rd_workers > io_workers->wr_workers) {
 			io_workers->rnd_rd = (int) ((io_workers->rnd_threads + io_workers->rd_workers) / 2);
 			io_workers->rnd_wr = io_workers->rnd_threads - io_workers->rnd_rd;
@@ -47,10 +51,22 @@ worker_setup(struct worker_opts *io_workers, struct dev_opts *iodev)
 			io_workers->seq_wr = (int) ((io_workers->seq_threads + io_workers->rd_workers) / 2);
 			io_workers->seq_rd = io_workers->seq_threads - io_workers->seq_wr;
 		} else if (io_workers->rnd_threads > io_workers->seq_threads && io_workers->wr_workers == io_workers->rd_workers) {
+			io_workers->rnd_rd = (int) ((io_workers->rnd_threads + io_workers->rd_workers) / 2);
+			io_workers->rnd_wr = io_workers->rnd_threads - io_workers->rnd_rd;
+			io_workers->seq_rd = (int) ((io_workers->seq_threads + io_workers->wr_workers) / 2);
+			io_workers->seq_wr = io_workers->seq_threads - io_workers->seq_rd;
 		} else if (io_workers->rnd_threads == io_workers->seq_threads && io_workers->wr_workers == io_workers->rd_workers) {
 			io_workers->rnd_rd = io_workers->seq_rd = io_workers->seq_wr = io_workers->rnd_wr = (int) iodev->nthreads / 4;
 		} else if (io_workers->rnd_threads == io_workers->seq_threads && io_workers->rd_workers > io_workers->wr_workers) {
+			io_workers->rnd_rd = (int) ((io_workers->rnd_threads + io_workers->rd_workers) / 2);
+			io_workers->rnd_wr = io_workers->rnd_threads - io_workers->rnd_rd;
+			io_workers->seq_rd = (int) ((io_workers->seq_threads + io_workers->wr_workers) / 2);
+			io_workers->seq_wr = io_workers->seq_threads - io_workers->seq_rd;
 		} else if (io_workers->rnd_threads == io_workers->seq_threads && io_workers->wr_workers > io_workers->rd_workers) {
+			io_workers->rnd_wr = (int) ((io_workers->rnd_threads + io_workers->wr_workers) / 2);
+			io_workers->rnd_rd = io_workers->rnd_threads - io_workers->rnd_wr;
+			io_workers->seq_wr = (int) ((io_workers->seq_threads + io_workers->rd_workers) / 2);
+			io_workers->seq_rd = io_workers->seq_threads - io_workers->seq_wr;
 		}
 	}
 	
