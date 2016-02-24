@@ -64,7 +64,7 @@ RUN_INDEFINITELY:
 			if (myopts->t_mode == N_READ) {
 				for (n = 0; n < total_extent; n++) {
 					GET_SYS_CLOCK(&iostartt);
-					if ((nbytes = (pread(myfd, n_iodev->buf, n_iodev->blksize, n))) != n_iodev->blksize) {
+					if ((nbytes = (pread(myfd, n_iodev->buf, n_iodev->blksize, (n * n_iodev->blksize)))) != n_iodev->blksize) {
 						lr_err++;
 						/* perror("read"); */
 					}
@@ -74,7 +74,7 @@ RUN_INDEFINITELY:
 			} else if (myopts->t_mode == N_WRITE) {
 				for (n = 0; n < total_extent; n++) {
 					GET_SYS_CLOCK(&iostartt);
-					if ((nbytes = (pwrite(myfd, n_iodev->buf, n_iodev->blksize, n))) != n_iodev->blksize) { 
+					if ((nbytes = (pwrite(myfd, n_iodev->buf, n_iodev->blksize, (n * n_iodev->blksize)))) != n_iodev->blksize) { 
 						lw_err++;
 						/* perror("write"); */
 					}

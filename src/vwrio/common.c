@@ -61,6 +61,7 @@ usage(void)
                    thread t1 to CPU 0 and thread t2 to CPU 1. Currently, thread naming is\n\
                    arbitrary. For instance, if you specify '-n4' (4 worker threads), the \n\
                    first worker thread would be t1, the second t2 and so on. \n\
+ -B	         - burstiness\n\
  -I              - run indefinitely and report periodic stats\n\
  -v              - verbose output\n\
  -h                this help\n\n",\
@@ -82,7 +83,7 @@ parse_args (int argc, char **argv, struct dev_opts *opts)
 
 	opterr = 0;
 	
-	while ((carg = getopt(argc, argv, "hIDCvd:m:c:b:t:s:n:i:M:T:")) != -1)
+	while ((carg = getopt(argc, argv, "hIDCvd:m:B:c:b:t:s:n:i:M:T:")) != -1)
 		switch (carg) {
 			case 'M':
 				opts->read_ratio = atoi(optarg);
