@@ -2,21 +2,21 @@ CC=gcc
 AR=ar
 LIBS=-lrt -lpthread
 INCLUDE=-I .
-CFLAGS=-fPIC -O3 -Wall -g
 DFLAGS=-DLINUX
-DEBUGFLAGS=-DDEBUG -g
+DBGFLAGS=-DDEBUG -g
 SRCS=main.c iothread.c work.c signal.c common.c init.c sysconf.c thread.c
+CFLAGS=-fPIC -O3 -Wall $(DFLAGS) 
 OBJS=$(SRCS:.c=.o) 
 BIN=xio
 DBIN=d.xio
 SLIB=libxio.a
 DLIB=libxio.so
 
-all: $(SRCS) $(DLIB) $(SLIB) $(DBIN) $(BIN)
+all: $(SRCS) $(DLIB) $(SLIB) $(DBIN) $(BIN) dbg
 
 
-$(DBIN): $(OBJS)
-	$(CC) $(LIBS) $(INCLUDE) $(DFLAGS) $(DEBUGFLAGS) $(CFLAGS) $^ -o $@ 
+$(DBIN): $(SRCS)
+	$(CC) $(LIBS) $(INCLUDE) $(DFLAGS) $(DBGFLAGS) $(CFLAGS) $^ -o $@ 
 
 $(SLIB): $(OBJS) 
 	$(AR) rcs $@ $^

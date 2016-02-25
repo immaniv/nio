@@ -10,10 +10,12 @@ worker_setup(struct worker_opts *io_workers, struct dev_opts *iodev)
                 if (!io_workers->seq_threads)
                         io_workers->seq_threads = 1;
                 io_workers->rnd_threads = (int) iodev->nthreads - io_workers->seq_threads;
-        } else {
+        } 
+
+	/*	else {
                 dbg_printf(1, "[ERROR] I/O Type ratio mismatch. TYPE: %c, SEQ_RATIO: %d\n", GET_IO_TYPE(iodev->type), iodev->seq_ratio);
                 return -1;
-        }
+        } */
 
 
         if (iodev->mode == MIXED && iodev->read_ratio != 0) {
