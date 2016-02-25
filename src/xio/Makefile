@@ -1,29 +1,32 @@
+CC=gcc 
+AR=ar
 LIBS=-lrt -lpthread
 INCLUDE=-I .
-CC=gcc 
-OPTS=-O3 -Wall
+CFLAGS=-fPIC -O3 -Wall -g
 DFLAGS=-DLINUX
-DEBUGFLAGS=-DDEBUG
-BSRC=main.c iothread.c work.c signal.c common.c init.c sysconf.c thread.c
-LSRC=iothread.c work.c signal.c common.c aio.c init.c sysconf.c thread.c
-OBJS=iothread.o work.o signal.o common.o init.o sysconf.o thread.o
-AR=ar
+DEBUGFLAGS=-DDEBUG -g
+SRCS=main.c iothread.c work.c signal.c common.c init.c sysconf.c thread.c
+OBJS=$(SRCS:.c=.o) 
+BIN=xio
+DBIN=d.xio
+SLIB=libxio.a
+DLIB=libxio.so
 
-all: vwrio d.vwrio libxio.so libxio.a
+all: $(SRCS) $(DLIB) $(SLIB) $(DBIN) $(BIN)
 
-vwrio: $(BSRC)
-	$(CC) $^ $(LIBS) $(INCLUDE) $(OPTS) $(DFLAGS) -o $@ 
+
+$(DBIN): $(OBJS)
+	$(CC) $(LIBS) $(INCLUDE) $(DFLAGS) $(DEBUGFLAGS) $(CFLAGS) $^ -o $@ 
+
+$(SLIB): $(OBJS) 
+	$(AR) rcs $@ $^
+
+$(DLIB): $(OBJS)
+	$(CC) -shared -Wl,-soname,$@ -o $@ $^
+
+$(BIN): $(OBJS)
+	$(CC) $(LIBS) $(INCLUDE) $(DFLAGS) $(CFLAGS) $^ -o $@ 
 	strip $@
 
-d.vwrio: $(BSRC)
-	$(CC) $^ $(LIBS) $(INCLUDE) $(OPTS) $(DFLAGS) $(DEBUGFLAGS) -g -o $@ 
-
-libxio.so: $(LSRC)
-	$(CC) -fPIC -g -c $^
-	$(CC) -shared -Wl,-soname,$@ -o $@ $(OBJS)
-
-libxio.a: $(LSRC)
-	$(CC) -fPIC -g -c $^
-	$(AR) rcs $@ $(OBJS)
 clean: 
-	rm -f vwrio d.vwrio *.o *.so *.a
+	rm -f $(BIN) $(DBIN) $(SLIB) $(DLIB) $(OBJS)
