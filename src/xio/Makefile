@@ -12,20 +12,20 @@ DBIN=d.xio
 SLIB=libxio.a
 DLIB=libxio.so
 
-all: $(SRCS) $(DLIB) $(SLIB) $(DBIN) $(BIN) dbg
+all: $(SRCS) $(DLIB) $(SLIB) $(DBIN) $(BIN) 
 
 
 $(DBIN): $(SRCS)
-	$(CC) $(LIBS) $(INCLUDE) $(DFLAGS) $(DBGFLAGS) $(CFLAGS) $^ -o $@ 
+	$(CC) $(INCLUDE) $(DFLAGS) $(DBGFLAGS) $(CFLAGS) $^ -o $@ $(LIBS)
 
 $(SLIB): $(OBJS) 
 	$(AR) rcs $@ $^
 
 $(DLIB): $(OBJS)
-	$(CC) -shared -Wl,-soname,$@ -o $@ $^
+	$(CC) -shared -Wl,-soname,$@ -o $@ $^ $(LIBS)
 
-$(BIN): $(OBJS)
-	$(CC) $(LIBS) $(INCLUDE) $(DFLAGS) $(CFLAGS) $^ -o $@ 
+$(BIN): $(SRCS)
+	$(CC) $(INCLUDE) $(DFLAGS) $(CFLAGS) $^ -o $@ $(LIBS)
 	strip $@
 
 clean: 
